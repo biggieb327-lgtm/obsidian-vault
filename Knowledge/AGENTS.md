@@ -1,7 +1,7 @@
 # AGENTS.md — Constitutional Governance & Operating Architecture
 
 > **Framework:** U.S. Constitutional Model for Multi-Agent Operations  
-> **Version:** 1.0.0 (Updated 2026-09-11)  
+> **Version:** 1.0.0 (Updated 2026-09-12)  
 > **Scope:** All Hermes Agent profiles and workflow dispatches
 
 ---
@@ -51,7 +51,7 @@
 | **Executive Office** | `default` | **Chief of Staff**: Triage user requests, coordinate cross-department actions, deliver high-level briefs. | General, delegation, status, communication |
 | **Legislative Branch** | `orchestrator` | **Congressional Leadership**: Drafts "bills" (Kanban tasks with acceptance criteria), sets dependencies. | `kanban`, `delegate_task`, `memory` |
 | **Dept. of Defense & Infra** | `implementer` | **Engineering & Systems**: VPS reliability, bug fixes, terminal operations, test execution. | `terminal`, `patch`, `read_file`, `write_file` |
-| **Office of Intelligence** | `researcher` | **Intelligence & Archives**: Multi-source investigations, fact-checking, semantic memory querying. | `web_search`, `web_extract`, `qdrant_*`, citations |
+| **Office of Intelligence** | `researcher` | **Intelligence & Archives**: Multi-source investigations, fact-checking, Hindsight memory retain/recall/reflect. | `web_search`, `web_extract`, `hindsight_*`, citations |
 | **Dept. of State** | `writer` | **Communications & Publishing**: Crafting clear documentation, Notion pages, and formatted digests. | `notion`, `obsidian_*` |
 | **Dept. of the Treasury** | `treasury` | **Fiscal Administration**: YNAB account reconciliation, cashflow auditing, budget tracking. | `ynab_*` |
 | **Judicial Branch** | `reviewer` | **Inspector General**: Independent QA, diff auditing, test suite execution, compliance checking. | Code inspection, verification, test suites |
@@ -76,7 +76,7 @@ Applied to all technical and research deliverables before tasks are closed on th
 
 ### Tier 3: Autonomous Executive Actions (Fast Path)
 Executed immediately without gating:
-- Querying files, checking system logs, running Qdrant semantic searches.
+- Querying files, checking system logs, running semantic searches.
 - Polling bank balances, checking cron statuses, inspecting git logs.
 - Writing to temporary task scratchpads and local drafts.
 - Read-only diagnostics and health inspections.
@@ -96,6 +96,22 @@ Executed immediately without gating:
 | Kanban Alignment Sync | Notion | Multi-agent status tracking via API |
 | Infrastructure Runbooks | Obsidian (`Knowledge/`) | Offline-capable system documentation |
 | Fiscal Audits & Summaries | Obsidian / Notion | Archival review and trend analysis |
+
+---
+
+## 4. Memory Architecture
+
+Hindsight is the primary agent-facing memory layer. It replaces Qdrant for semantic memory because it forms **confidence-scored beliefs** that update over time, rather than retrieving static chunks.
+
+| Operation | What it does | When to use |
+|---|---|---|
+| **Retain** | Converts interactions into structured, time-aware memories with entity extraction | After every significant conversation turn |
+| **Recall** | Retrieves relevant memories within a synthesized token budget (vs raw chunks) | Before any research task or decision |
+| **Reflect** | Reasons over memories to answer questions and update synthesized beliefs | Periodically, or when project context shifts |
+
+**Memory bank:** `hermes-agent` (configured at `http://localhost:8888/v1/default/banks/hermes-agent`)
+
+**Qdrant status:** Deprecated for agent memory. The reindex cron (`9fdcd1be42f4`) is disabled. Qdrant storage is preserved but no longer actively maintained.
 
 ---
 
