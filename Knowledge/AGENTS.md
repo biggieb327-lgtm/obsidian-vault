@@ -202,3 +202,71 @@ The RCA script:
 | **Archival Sync (Git)** | Every 10m | Automatically commit and push Obsidian vault changes to GitHub. |
 | **OMB (Cost & Efficiency)** | Sun 03:00 | Audit token usage, evaluate model cost-effectiveness. |
 | **National Memory Hygiene** | Sun 02:00 | Prune stale memory entries and deduplicate records. |
+
+---
+
+## 7. Constraints System — Learning from Mistakes
+
+### 7.1 The Constraints File
+
+Agent mistakes are logged in `~/.hermes/memories/constraints.md`. Each entry follows this format:
+
+```
+## C<N> — <title>
+
+**What happened:** <one sentence describing the mistake>
+
+**Constraint:** <imperative rule for future behavior>
+
+```bash
+# Quick check: <optional verification command>
+```
+
+**Seen:** <count>  
+**Graduated:** <mechanism path or "Not graduated — <reason>">
+```
+
+### 7.2 The Minor Log
+
+Self-corrected errors that don't yet have a pattern go to the `## Minor` section:
+- One line each, newest first
+- Format: `- YYYY-DD-MM -- <what happened> -> <imperative>`
+- Two Minor entries sharing a cause get promoted to a numbered constraint
+- After 30 days, unpaired entries move to `## Minor -- archived`
+
+### 7.3 Graduation Rules
+
+| Seen Count | Status | Action |
+|---|---|---|
+| 1 | First occurrence | Logging is sufficient |
+| 2 | Pattern confirmed | Build a mechanism (hook, check, or scanner) |
+| 3+ | Ungraduated violation | Escalate to user — the system is failing |
+
+A constraint is "graduated" when it has a mechanical guard — a hook, an eval, a scanner, or a script — that prevents the mistake from recurring. Prose-only constraints (where no mechanism is possible) stay at "Not graduated" indefinitely, and reading them at session startup is the only defence.
+
+### 7.4 Drift Scanning
+
+The constraints file itself can drift. The drift scanner (`~/.hermes/scripts/constraints_drift.py`) checks:
+
+1. **Constraints at seen: 2+ without graduation** — violating the graduation rule
+2. **Minor backlog over 8 entries** — signals under-promotion
+3. **Promotion candidates** — Minor entries sharing vocabulary that indicate a pattern
+
+### 7.5 Session Startup Audit
+
+At the start of every session, run:
+```bash
+bash ~/.hermes/scripts/session_audit.sh
+```
+
+This reports:
+- Total active constraints
+- Prose-only constraints (reading is the only defence)
+- Overdue mechanisms (seen: 2+ without graduation)
+- Minor backlog count
+
+### 7.6 Debrief Integration
+
+The weekly review asks "mistakes made?" — this question is now formalized:
+- If the answer references a constraint, increment its `seen` count
+- If the answer is "none," check the Minor log — an empty section means under-reporting, not a clean run
