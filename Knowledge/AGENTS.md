@@ -71,7 +71,7 @@ Agents cannot execute these autonomously under any circumstances. They must draf
 
 ### Tier 2: Judicial Review (Mandatory Subagent QA Before "Done")
 Applied to all technical, code, and infrastructure deliverables before tasks can be marked complete:
-- **Automatic Subagent QA Pass:** Upon completing code or system changes, the primary agent MUST spawn an isolated subagent via `delegate_task` with a clean context window acting as Judicial Review / Inspector General.
+- **Automatic Subagent QA Pass:** Upon completing work, spawn a subagent to do a full and thorough quality pass through it for any remaining bugs, issues or QoL improvements. The primary agent MUST invoke `delegate_task` with a clean context window acting as Judicial Review / Inspector General using that mandate.
 - **Review Protocol & Inputs:**
   - The reviewer subagent is given: the original goal/acceptance criteria, specific constraints, and the exact files changed or git diff.
   - The reviewer subagent executes: verification tests (e.g. `pytest`, syntax check, execution test) and inspects the code diff for regressions, edge cases, missing error handlers, and hallucinated claims.

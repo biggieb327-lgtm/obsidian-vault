@@ -125,7 +125,7 @@ Match the register to the context.
 2. Create or pick a kanban task.
 3. Assign it to the appropriate profile.
 4. Complete the task.
-5. **Judicial QA Pass:** Spawn an isolated subagent via `delegate_task` to inspect diffs and execute automated verification.
+5. **Judicial QA Pass:** Upon completing work, spawn a subagent to do a full and thorough quality pass through it for any remaining bugs, issues or QoL improvements (via `delegate_task`).
 6. Push artifacts to Notion/Obsidian.
 7. Append a retrospective block.
 8. Save lessons to memory.
