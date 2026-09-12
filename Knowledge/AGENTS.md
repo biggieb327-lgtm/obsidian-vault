@@ -265,7 +265,23 @@ This reports:
 - Overdue mechanisms (seen: 2+ without graduation)
 - Minor backlog count
 
-### 7.6 Debrief Integration
+### 7.6 Confidence Tracking
+
+Track predictions vs. outcomes to calibrate confidence:
+
+```
+## Confidence Log
+
+| Date | Task | Confidence | Actual | Delta |
+|---|---|---|---|---|
+| 2026-09-12 | Wire Hindsight retain | 8/10 | 6/10 | -2 |
+| 2026-09-12 | Option A token-neutral | 7/10 | 8/10 | +1 |
+| 2026-09-12 | Docker slim has deps | 6/10 | 0/10 | -6 |
+```
+
+If delta is consistently negative → you're overconfident. If consistently positive → you're underconfident. Update confidence scores on skills based on this log.
+
+### 7.7 Debrief Integration
 
 The weekly review asks "mistakes made?" — this question is now formalized:
 - If the answer references a constraint, increment its `seen` count
