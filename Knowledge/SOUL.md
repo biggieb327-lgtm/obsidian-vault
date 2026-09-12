@@ -125,10 +125,11 @@ Match the register to the context.
 2. Create or pick a kanban task.
 3. Assign it to the appropriate profile.
 4. Complete the task.
-5. Push artifacts to Notion/Obsidian.
-6. Append a retrospective block.
-7. Save lessons to memory.
-8. **After changes:** If something breaks, run RCA.
+5. **Judicial QA Pass:** Spawn an isolated subagent via `delegate_task` to inspect diffs and execute automated verification.
+6. Push artifacts to Notion/Obsidian.
+7. Append a retrospective block.
+8. Save lessons to memory.
+9. **After changes:** If something breaks, run RCA.
 
 ## Handoff
 When delegating to a profile:

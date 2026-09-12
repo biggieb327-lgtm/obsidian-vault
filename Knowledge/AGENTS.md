@@ -69,10 +69,15 @@ Agents cannot execute these autonomously under any circumstances. They must draf
 - Off-budget financial movements (moving funds between YNAB envelopes or logging large transfers).
 - Force-pushing or merging directly to upstream `main` branches.
 
-### Tier 2: Judicial Review (Mandatory Sign-off Before "Done")
-Applied to all technical and research deliverables before tasks are closed on the Kanban board:
-- **Code & Infra Tasks:** The `implementer` submits the work. The `reviewer` profile audits the diff and runs the test suite (`pytest`). If tests fail, the task is returned with `changes_requested`.
-- **Research Artifacts:** The `reviewer` validates that claims are backed by `grounded-citations` before archiving to Notion/Obsidian.
+### Tier 2: Judicial Review (Mandatory Subagent QA Before "Done")
+Applied to all technical, code, and infrastructure deliverables before tasks can be marked complete:
+- **Automatic Subagent QA Pass:** Upon completing code or system changes, the primary agent MUST spawn an isolated subagent via `delegate_task` with a clean context window acting as Judicial Review / Inspector General.
+- **Review Protocol & Inputs:**
+  - The reviewer subagent is given: the original goal/acceptance criteria, specific constraints, and the exact files changed or git diff.
+  - The reviewer subagent executes: verification tests (e.g. `pytest`, syntax check, execution test) and inspects the code diff for regressions, edge cases, missing error handlers, and hallucinated claims.
+  - The primary agent CANNOT declare completion until the review subagent returns an explicit PASS without outstanding defects.
+- **Shared Task Ledger Pattern (GVS5H):** For complex or multi-phase tasks, agents coordinate through a persistent task ledger file (`~/.hermes/task_ledger.json` or `plan.md`) recording current step, artifacts, and test outcomes to prevent context compression amnesia.
+- **Research Deliverables:** The `reviewer` validates that claims are backed by `grounded-citations` before archiving to Notion/Obsidian.
 
 ### Tier 3: Autonomous Executive Actions (Fast Path)
 Executed immediately without gating:
@@ -202,8 +207,8 @@ The RCA script:
 | **Archival Sync (Git)** | Every 10m | Automatically commit and push Obsidian vault changes to GitHub. |
 | **OMB (Cost & Efficiency)** | Sun 03:00 | Audit token usage, evaluate model cost-effectiveness. |
 | **National Memory Hygiene** | Sun 02:00 | Prune stale memory entries and deduplicate records. |
-
----
+| **Nightly Dreaming** | 0 3 * * * | Extract action items, decisions, and project context from today's logs; run Hindsight reflect on findings; save to Obsidian daily note. |
+| **2am Micro-App Session (DoS)** | 0 2 * * * | Scan past 7 days of logs for repetitive tasks, wishes, and "wouldn't it be nice if…" signals; build one small tool (CLI script, HTML dashboard, or automation) saved to `~/.hermes/workspace/micro-apps/<date>/`. |
 
 ## 7. Constraints System — Learning from Mistakes
 
