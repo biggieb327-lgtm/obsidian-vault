@@ -9,6 +9,7 @@
 - [[People-Hub]] — Contacts, collaborators, accounts
 - [[Decisions-Log]] — Major decisions, chronological
 - [[Vault-Hygiene-Report]] — Automated health audit
+- [[Knowledge-Graph]] — Synthesized concept clusters & backlink topology
 - [[WORKSPACE_MAP]] — 0-token system orientation map
 - [[2026-09-13]] — Latest Daily Dreaming log
 

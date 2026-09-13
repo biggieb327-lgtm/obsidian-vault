@@ -1,5 +1,5 @@
 # Obsidian Vault Hygiene Report
-> Generated deterministically: 2026-09-13T03:50:04 UTC
+> Generated deterministically: 2026-09-13T04:52:07 UTC
 
 - **Total Notes:** 14
 - **Unfiled Root Notes:** 0
@@ -18,4 +18,4 @@
 ✓ None. Every note is referenced by at least one other document.
 
 ---
-[[Memory-Wiki]] | [[AI-Agent-Hub]] | [[Projects-Hub]] | [[Decisions-Log]]
+[[Memory-Wiki]] | [[Knowledge-Graph]] | [[AI-Agent-Hub]] | [[Projects-Hub]] | [[Decisions-Log]]
