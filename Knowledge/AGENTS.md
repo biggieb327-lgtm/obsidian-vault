@@ -346,13 +346,36 @@ mechanism registry so the 6-hourly health run catches drift.
 - reasoning is ~50% of output tokens
 - output/input ratio ~0.003: this install is input-dominated, not verbose
 
-**`agent.reasoning_effort`** is the global lever (read by
-`hermes_constants.resolve_reasoning_config`, the single chokepoint for CLI,
-gateway, TUI, cron, `/model` and fallback). Set to `low`. Per-model overrides
-live in `agent.reasoning_overrides`; per-session escape hatch is `/reasoning`.
-Note: `hermes config set` warns this key is "not recognized" — that is the CLI
-key-registry, not the runtime. The runtime reads it; verify with
-`resolve_reasoning_config(cfg, model)`.
+**`agent.reasoning_effort` — LEAVE IT UNSET.** Measured directly against the
+provider on 2026-09-13 (same prompt, completion+reasoning tokens, medians):
+
+    omitted (provider default)   814
+    max                         1066
+    high                        1294
+    low                         1770   <- most verbose
+
+The ladder is **inverted** on this route, and every explicit value is worse than
+sending nothing. A paired run put `low` at 2.7x the omitted default, cheaper on
+0/3 runs. `low` is not the cheap end of the dial — it is the worst setting
+available. The original unset config was already optimal.
+
+This contradicted both the Nous catalog (`supported_efforts: [max, high, low]`)
+and the vLLM recipe's claim that low = "Non-think". **Do not set a reasoning
+effort from documentation alone — measure it.** n=3-5 per arm, one prompt, one
+model: confident in the direction, softer on the exact magnitude.
+
+Mechanics: read by `hermes_constants.resolve_reasoning_config`, the single
+chokepoint for CLI, gateway, TUI, cron, `/model` and fallback. Per-model
+overrides live in `agent.reasoning_overrides`; per-session escape hatch is
+`/reasoning`. `hermes config set` warns this key is "not recognized" — that is
+the CLI key-registry, not the runtime; the runtime reads it (verify with
+`resolve_reasoning_config(cfg, model)`).
+
+**Beware the per-session usage table for A/B measurement.** `session_model_usage`
+aggregates per (session, model, task), so a session's whole history pins to one
+`last_seen`. Splitting a change by timestamp measures session *length*, not the
+setting — that confound made the `low` change look like a 45% cost/call win when
+a direct API test showed it was a 2.7x regression.
 
 **Auxiliary tasks inherit the main model by default.** That is how one aux task
 (`background_review`) reached 17% of all recorded spend — it was simply
