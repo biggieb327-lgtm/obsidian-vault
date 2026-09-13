@@ -225,8 +225,43 @@ It contains an offline SQLite FTS5 database (`hermes_rag.sqlite`) indexing **674
 | **2am Micro-App Session (DoS)** | 0 2 * * * | Scan past 7 days of logs for repetitive tasks, wishes, and "wouldn't it be nice if…" signals; build one small tool (CLI script, HTML dashboard, or automation) saved to `~/.hermes/workspace/micro-apps/<date>/`. |
 | **Vault Hygiene Audit** | Sun 04:00 | Scan Obsidian vault for unfiled root notes, broken wikilinks, and orphaned pages via `vault_hygiene.py`. |
 | **Infrastructure Watchdog** | Every 30m | Monitor open ports, service endpoints, and URLs via `watchdog.py`; alert to Matrix only on diff. |
+| **Retrospective Backfill** | Every 30m | Deterministic, 0-token capture of a retrospective for every completed Kanban task lacking one, via `retrospective_backfill.py --quiet`. Writes to `memories/retrospectives.md` and posts a task comment. Silent when idle. |
 
-## 7. Constraints System — Learning from Mistakes
+---
+
+## 8. Kanban Dispatch Ownership (single-owner, deterministic)
+
+Dispatch must never depend on which gateway wins the boot race. Ownership is
+therefore **designated by configuration**, not by lock contention:
+
+- `kanban.dispatch_in_gateway: true` — **implementer profile only** (the designated dispatcher).
+- `kanban.dispatch_in_gateway: false` — default profile and every other profile.
+
+Effect: the implementer gateway is the sole dispatcher. The default gateway
+backs off by config rather than by losing a race, so a restart of the default
+gateway can never silently take over or silently stop dispatch.
+
+**Residual risk:** the designated gateway is a single point of failure. If
+`hermes-gateway-implementer.service` stops, nothing dispatches. The
+`bulletproof-hermes` `Dispatcher` check surfaces this (lock present but holder
+dead/absent) on every 6h health run.
+
+**Migration path (staged, not yet active):** a standalone
+`~/.config/systemd/user/hermes-kanban-dispatcher.service` is installed but
+**not enabled**. It runs `hermes kanban daemon --interval 60`, removing the
+single point entirely. To activate, from a shell **outside** the gateway
+process (restarting a gateway from inside itself is blocked):
+
+```bash
+systemctl --user disable --now hermes-gateway-implementer.service
+systemctl --user enable --now hermes-kanban-dispatcher.service
+```
+
+Then set `kanban.dispatch_in_gateway: false` on the implementer profile too, so
+no gateway dispatches at all.
+
+
+## 9. Constraints System — Learning from Mistakes
 
 ### 7.1 The Constraints File
 
