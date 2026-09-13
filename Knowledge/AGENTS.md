@@ -283,11 +283,46 @@ The auditor enforces three distinct things:
 3. **Witness** — the mechanism must prove its *effect*, not merely that a
    command exited. Witness kinds:
    - `file_fresh` — the declared artifact exists and is newer than `max_age_minutes`.
+     A glob is allowed (e.g. `cron/output/<job>/*`); the freshest match is judged.
    - `invariant` — a command exits 0, asserting a property of the world.
    - `null` — explicitly acknowledged as unproven (reported, not hidden).
 
+**All 9 registered mechanisms now carry a real witness; none is `null`.**
+
 **Adding a mechanism:** give it a witness. An entry without one is a declaration,
 not a guarantee, and the report says so out loud.
+
+### 9.1 Witnesses that assert end state, not activity
+
+Three mechanisms cannot be witnessed by freshness, because "nothing happened" is
+their normal successful outcome. They are witnessed by the state they are
+responsible for instead:
+
+| Mechanism | Witness | Assertion |
+|---|---|---|
+| `vault-auto-push` | `check_vault_sync.py` | Vault worktree clean and HEAD not ahead of `origin/main` (30m tolerance for the 10m schedule). |
+| `infrastructure-watchdog` | `watchdog_state.json` fresh | The diff baseline is rewritten every run, proving the pass executed. |
+| `bulletproof-health-check` | `cron/output/e490b859eacc/*` fresh | The per-run output artifact exists (agent job — nothing else on disk to hash). |
+| `kanban-dispatch` | `check_dispatcher_lock.py` | Lock resolved to a **live Hermes PID**, not merely a file that exists. |
+
+The dispatch witness matters most: a lock *file* outlives its holder, so the old
+check ("file present") would report healthy while the board was silently stalled.
+
+### 9.2 Root-cause fix: delegated-child marker leaked into the shell
+
+The `HERMES_DELEGATED_CHILD_CONTEXT` leak is **fixed at source**, not worked
+around. The terminal session persists shell state by dumping `export -p` into a
+snapshot sourced by every later command; its exclusion list omitted the marker,
+so a transient `delegate_task` fence was baked in for the rest of the session and
+the Kanban CLI refused every call — including reads — from a context that was
+never delegated.
+
+`tools/environments/base_session_env.py` now unsets the marker when building the
+snapshot. Per-command envs re-derive it from the live context, so real delegated
+children and dispatcher workers keep their write fence. `_hermes_env.py` stays as
+defence in depth for scripts that shell out to the CLI.
+
+Committed in the `hermes-agent` fork as `fb2b4a37` (not pushed).
 
 **The retrospective invariant** (`retrospective_backfill.py --check 90`) is the
 monitor for the defect that started this: it compares the SET of done tasks
