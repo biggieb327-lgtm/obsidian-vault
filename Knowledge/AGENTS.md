@@ -213,7 +213,7 @@ It contains an offline SQLite FTS5 database (`hermes_rag.sqlite`) indexing **674
 | **DoD Daily Threat Brief** | 07:00 daily | Comprehensive security assessment: VPS ports, auth logs, Linux CVEs, and WA State cyber/physical news. |
 | **Treasury Daily Financial Brief** | 07:30 daily | Deterministic 0-token budget & outflow summary via `treasury_brief.py` (checking balances, debt, top categories). |
 | **Weekly Community Knowledge Sync** | Mon 03:00 | Ingest newly announced community showcases and plugins into `hermes-advisor` via `update_advisor_knowledge.py`. |
-| **Autonomous PR Reviewer** | 12:00 ...[truncated]
+| **Autonomous PR Reviewer** | 12:00 daily | Audits open GitHub Pull Requests across configured repos via `pr_reviewer.py`, inspecting diffs and security flags. |
 | **Executive Cabinet Briefing** | 08:00 daily | Chief of Staff synthesis: Defense, Treasury (YNAB), Intelligence, State, and Legislative updates. |
 | **Congressional Standup** | Mon–Fri 09:00 | Audit Kanban backlog and progress across active departments. |
 | **GAO (Health Audit)** | Every 6h | Run `bulletproof-hermes` infrastructure health check. |
@@ -261,9 +261,46 @@ Then set `kanban.dispatch_in_gateway: false` on the implementer profile too, so
 no gateway dispatches at all.
 
 
-## 9. Constraints System — Learning from Mistakes
+## 9. Mechanism Registry — Proving Mechanisms Are Wired
 
-### 9.1 The Constraints File
+A mechanism is not working because a script exists, a kanban task is `done`, or a
+document says so. It is working only when a witness proves its effect.
+
+**Registry:** `~/.hermes/config/mechanisms.yaml`
+**Auditor:** `~/.hermes/scripts/mechanism_audit.py` (runs inside the 6-hourly
+bulletproof-hermes health check as the `Mechanisms` check).
+
+The auditor enforces three distinct things:
+
+1. **Structural** — every *enabled* cron job that names a `script` must resolve
+   under `~/.hermes/scripts/`. A typo'd or moved path fails silently forever.
+   This is how a dead job was found: orchestrator `7fd64b8a6209` pointed at
+   `scripts/self_improvement_loop.py`, resolving to a nonexistent nested path.
+2. **Liveness** — every registered mechanism must have run within
+   `interval_minutes * 3` (floor 60m) and must not sit in `error`/`failed`.
+   A job that has never run is only a failure once it has existed past that
+   window, so a newly created mechanism is not flagged before its first tick.
+3. **Witness** — the mechanism must prove its *effect*, not merely that a
+   command exited. Witness kinds:
+   - `file_fresh` — the declared artifact exists and is newer than `max_age_minutes`.
+   - `invariant` — a command exits 0, asserting a property of the world.
+   - `null` — explicitly acknowledged as unproven (reported, not hidden).
+
+**Adding a mechanism:** give it a witness. An entry without one is a declaration,
+not a guarantee, and the report says so out loud.
+
+**The retrospective invariant** (`retrospective_backfill.py --check 90`) is the
+monitor for the defect that started this: it compares the SET of done tasks
+against the SET carrying a real retrospective comment, and fails naming any
+uncovered task older than the grace period. It deliberately counts only comments
+produced by the tool — not file markers — because the original bug was a
+hand-written fake block that satisfied a marker check.
+
+---
+
+## 10. Constraints System — Learning from Mistakes
+
+### 10.1 The Constraints File
 
 Agent mistakes are logged in `~/.hermes/memories/constraints.md`. Each entry follows this format:
 
@@ -282,7 +319,7 @@ Agent mistakes are logged in `~/.hermes/memories/constraints.md`. Each entry fol
 **Graduated:** <mechanism path or "Not graduated — <reason>">
 ```
 
-### 9.2 The Minor Log
+### 10.2 The Minor Log
 
 Self-corrected errors that don't yet have a pattern go to the `## Minor` section:
 - One line each, newest first
@@ -290,7 +327,7 @@ Self-corrected errors that don't yet have a pattern go to the `## Minor` section
 - Two Minor entries sharing a cause get promoted to a numbered constraint
 - After 30 days, unpaired entries move to `## Minor -- archived`
 
-### 9.3 Graduation Rules
+### 10.3 Graduation Rules
 
 | Seen Count | Status | Action |
 |---|---|---|
@@ -300,7 +337,7 @@ Self-corrected errors that don't yet have a pattern go to the `## Minor` section
 
 A constraint is "graduated" when it has a mechanical guard — a hook, an eval, a scanner, or a script — that prevents the mistake from recurring. Prose-only constraints (where no mechanism is possible) stay at "Not graduated" indefinitely, and reading them at session startup is the only defence.
 
-### 9.4 Drift Scanning
+### 10.4 Drift Scanning
 
 The constraints file itself can drift. The drift scanner (`~/.hermes/scripts/constraints_drift.py`) checks:
 
@@ -308,7 +345,7 @@ The constraints file itself can drift. The drift scanner (`~/.hermes/scripts/con
 2. **Minor backlog over 8 entries** — signals under-promotion
 3. **Promotion candidates** — Minor entries sharing vocabulary that indicate a pattern
 
-### 9.5 Session Startup Audit
+### 10.5 Session Startup Audit
 
 At the start of every session, run:
 ```bash
@@ -321,7 +358,7 @@ This reports:
 - Overdue mechanisms (seen: 2+ without graduation)
 - Minor backlog count
 
-### 9.6 Confidence Tracking
+### 10.6 Confidence Tracking
 
 Track predictions vs. outcomes to calibrate confidence:
 
@@ -337,7 +374,7 @@ Track predictions vs. outcomes to calibrate confidence:
 
 If delta is consistently negative → you're overconfident. If consistently positive → you're underconfident. Update confidence scores on skills based on this log.
 
-### 9.7 Debrief Integration
+### 10.7 Debrief Integration
 
 The weekly review asks "mistakes made?" — this question is now formalized:
 - If the answer references a constraint, increment its `seen` count
