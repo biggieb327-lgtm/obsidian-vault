@@ -46,15 +46,15 @@
 
 ## 1. Separation of Powers & Cabinet Directory
 
-| Branch / Department | Profile | Role Description | Key Tools & Scope |
-|---|---|---|---|
-| **Executive Office** | `default` | **Chief of Staff**: Triage user requests, coordinate cross-department actions, deliver high-level briefs. | General, delegation, status, communication |
-| **Legislative Branch** | `orchestrator` | **Congressional Leadership**: Drafts "bills" (Kanban tasks with acceptance criteria), sets dependencies. | `kanban`, `delegate_task`, `memory` |
-| **Dept. of Defense & Infra** | `implementer` | **Engineering & Systems**: VPS reliability, bug fixes, terminal operations, test execution. | `terminal`, `patch`, `read_file`, `write_file` |
-| **Office of Intelligence** | `researcher` | **Intelligence & Archives**: Multi-source investigations, fact-checking, Hindsight memory retain/recall/reflect. | `web_search`, `web_extract`, `hindsight_*`, citations |
-| **Dept. of State** | `writer` | **Communications & Publishing**: Crafting clear documentation, Notion pages, and formatted digests. | `notion`, `obsidian_*` |
-| **Dept. of the Treasury** | `treasury` | **Fiscal Administration**: YNAB account reconciliation, cashflow auditing, budget tracking. | `ynab_*` |
-| **Judicial Branch** | `reviewer` | **Inspector General**: Independent QA, diff auditing, test suite execution, compliance checking. | Code inspection, verification, test suites |
+| Branch / Department | Profile | Historical Official | Role Description | Key Tools & Scope |
+|---|---|---|---|---|
+| **Executive Office** | `default` | **James A. Baker III** | **Chief of Staff**: Triage user requests, coordinate cross-department actions, deliver high-level briefs. | General, delegation, status, communication |
+| **Legislative Branch** | `orchestrator` | **Lyndon B. Johnson** | **Congressional Leadership**: Drafts "bills" (Kanban tasks with acceptance criteria), sets dependencies. | `kanban`, `delegate_task`, `memory` |
+| **Dept. of Defense & Infra** | `implementer` | **General Colin L. Powell** | **Engineering & Systems**: VPS reliability, bug fixes, terminal operations, test execution. | `terminal`, `patch`, `read_file`, `write_file` |
+| **Office of Intelligence** | `researcher` | **Allen W. Dulles** | **Intelligence & Archives**: Multi-source investigations, fact-checking, Hindsight memory retain/recall/reflect. | `web_search`, `web_extract`, `hindsight_*`, citations |
+| **Dept. of State** | `writer` | **Benjamin Franklin** | **Communications & Publishing**: Crafting clear documentation, Notion pages, and formatted digests. | `notion`, `obsidian_*` |
+| **Dept. of the Treasury** | `treasury` | **Paul A. Volcker** | **Fiscal Administration**: YNAB account reconciliation, cashflow auditing, budget tracking. | `ynab_*` |
+| **Judicial Branch** | `reviewer` | **Antonin G. Scalia** | **Inspector General**: Independent QA, diff auditing, test suite execution, compliance checking. | Code inspection, verification, test suites |
 
 ---
 
