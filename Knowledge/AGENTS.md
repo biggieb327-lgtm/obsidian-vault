@@ -263,7 +263,7 @@ no gateway dispatches at all.
 
 ## 9. Constraints System — Learning from Mistakes
 
-### 7.1 The Constraints File
+### 9.1 The Constraints File
 
 Agent mistakes are logged in `~/.hermes/memories/constraints.md`. Each entry follows this format:
 
@@ -282,7 +282,7 @@ Agent mistakes are logged in `~/.hermes/memories/constraints.md`. Each entry fol
 **Graduated:** <mechanism path or "Not graduated — <reason>">
 ```
 
-### 7.2 The Minor Log
+### 9.2 The Minor Log
 
 Self-corrected errors that don't yet have a pattern go to the `## Minor` section:
 - One line each, newest first
@@ -290,7 +290,7 @@ Self-corrected errors that don't yet have a pattern go to the `## Minor` section
 - Two Minor entries sharing a cause get promoted to a numbered constraint
 - After 30 days, unpaired entries move to `## Minor -- archived`
 
-### 7.3 Graduation Rules
+### 9.3 Graduation Rules
 
 | Seen Count | Status | Action |
 |---|---|---|
@@ -300,7 +300,7 @@ Self-corrected errors that don't yet have a pattern go to the `## Minor` section
 
 A constraint is "graduated" when it has a mechanical guard — a hook, an eval, a scanner, or a script — that prevents the mistake from recurring. Prose-only constraints (where no mechanism is possible) stay at "Not graduated" indefinitely, and reading them at session startup is the only defence.
 
-### 7.4 Drift Scanning
+### 9.4 Drift Scanning
 
 The constraints file itself can drift. The drift scanner (`~/.hermes/scripts/constraints_drift.py`) checks:
 
@@ -308,7 +308,7 @@ The constraints file itself can drift. The drift scanner (`~/.hermes/scripts/con
 2. **Minor backlog over 8 entries** — signals under-promotion
 3. **Promotion candidates** — Minor entries sharing vocabulary that indicate a pattern
 
-### 7.5 Session Startup Audit
+### 9.5 Session Startup Audit
 
 At the start of every session, run:
 ```bash
@@ -321,7 +321,7 @@ This reports:
 - Overdue mechanisms (seen: 2+ without graduation)
 - Minor backlog count
 
-### 7.6 Confidence Tracking
+### 9.6 Confidence Tracking
 
 Track predictions vs. outcomes to calibrate confidence:
 
@@ -337,7 +337,7 @@ Track predictions vs. outcomes to calibrate confidence:
 
 If delta is consistently negative → you're overconfident. If consistently positive → you're underconfident. Update confidence scores on skills based on this log.
 
-### 7.7 Debrief Integration
+### 9.7 Debrief Integration
 
 The weekly review asks "mistakes made?" — this question is now formalized:
 - If the answer references a constraint, increment its `seen` count
