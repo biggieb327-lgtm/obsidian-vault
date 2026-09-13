@@ -31,10 +31,14 @@ hermes cron create "0 10 * * 3" "Check NanoGPT weekly quota status:
 
 When the primary model fails, the fallback order should be:
 
-1. **Primary:** `google/gemini-3.8-flash` via Nous Portal (free tier)
-2. **Secondary:** `nex-agi/nex-n2.5-mini:free` via OpenRouter (free)
-3. **Tertiary:** `llama3.2:3b` via local phone router (Tailscale, zero cost)
-4. **Emergency:** Paid OpenRouter model (requires valid API key)
+1. **Primary:** `deepseek/deepseek-v4-flash-0731` via Nous Portal (cheapest paid tier, 1M ctx, verified working ~3s).
+2. **Secondary:** `google/gemini-3.8-flash` via Nous Portal (prior default).
+3. **Tertiary:** `nex-agi/nex-n2.5-mini:free` via OpenRouter.
+4. **Emergency:** Paid OpenRouter model (requires valid API key).
+
+**Known limitation — `:free` Nous models:** `stepfun/step-3.7-flash:free`, `meituan/longcat-2.0:free`, etc. frequently return `HTTP 429: The requested model is temporarily at capacity upstream`. This is an upstream capacity limit, not your key. Hermes will retry (30s backoff, 3 attempts) and usually succeeds after ~60–70s, but it is too slow for interactive or cron use. Do not set a `:free` model as default.
+
+**Decommissioned:** Phone local router (`100.113.100.67:11434`) — removed 2026-09-12. Do not plan fallbacks around it.
 
 ### Configure Fallback in config.yaml
 
@@ -48,14 +52,25 @@ If supported, configure:
 
 ```yaml
 model:
-  default: google/gemini-3.8-flash
+  default: deepseek/deepseek-v4-flash-0731
   provider: nous
+  context_length: 1048576
   fallback:
     model: nex-agi/nex-n2.5-mini:free
     provider: openrouter
 ```
 
 If not supported, use the `model_aliases` system and a custom dispatch script.
+
+### After ANY model change — re-pin crons
+
+Unpinned crons are skipped by the `drift_skip` guard to prevent unintended spend. After changing the default model, run:
+
+```bash
+bash ~/.hermes/scripts/auto_pin_cron.sh
+```
+
+This reads job IDs from `~/.hermes/cron/jobs.json` and pins every job to the new provider/model. Verify with the summary it prints (expect `N/N jobs pinned`).
 
 ---
 
