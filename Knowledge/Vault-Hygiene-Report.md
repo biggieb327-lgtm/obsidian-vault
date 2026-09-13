@@ -1,10 +1,10 @@
 # Obsidian Vault Hygiene Report
-> Generated deterministically: 2026-09-13T00:21:46 UTC
+> Generated deterministically: 2026-09-13T00:24:54 UTC
 
 - **Total Notes:** 12
 - **Unfiled Root Notes:** 0
 - **Orphan Notes (0 Inbound Links):** 0
-- **Files with Broken Links:** 4
+- **Files with Broken Links:** 3
 
 ## Unfiled Root Notes
 ✓ None. All notes are neatly organized in subfolders.
@@ -13,7 +13,6 @@
 - **[[AI-Agent-Hub]]**: references non-existent `[[Claude-Code]]`, `[[Codex]]`, `[[Constitutional-Governance]]`, `[[Hermes-Agent]]`, `[[Hindsight]]`, `[[Notion]]`, `[[Obsidian]]`, `[[Qdrant]]`, `[[RAG-Memory]]`, `[[Self-Improvement]]`, `[[llama3.2:3b]]`, `[[meituan/longcat-2.0:free]]`, `[[stepfun/step-3.7-flash:free]]`
 - **[[People-Hub]]**: references non-existent `[[B A]]`, `[[biggieb327-lgtm]]`, `[[brianault327@gmail.com]]`
 - **[[Projects-Hub]]**: references non-existent `[[Hindsight-Integration]]`, `[[Self-Improvement-Loop]]`, `[[hermes-ynab-chief]]`, `[[obsidian-vault]]`, `[[voicekit-starter]]`
-- **[[Vault-Hygiene-Report]]**: references non-existent `[[B A]]`, `[[Claude-Code]]`, `[[Codex]]`, `[[Constitutional-Governance]]`, `[[Hermes-Agent]]`, `[[Hindsight]]`, `[[Hindsight-Integration]]`, `[[Notion]]`, `[[Obsidian]]`, `[[Qdrant]]`, `[[RAG-Memory]]`, `[[Self-Improvement]]`, `[[Self-Improvement-Loop]]`, `[[biggieb327-lgtm]]`, `[[brianault327@gmail.com]]`, `[[hermes-ynab-chief]]`, `[[llama3.2:3b]]`, `[[meituan/longcat-2.0:free]]`, `[[obsidian-vault]]`, `[[stepfun/step-3.7-flash:free]]`, `[[voicekit-starter]]`
 
 ## Orphan Notes (No Inbound Links)
 ✓ None. Every note is referenced by at least one other document.
