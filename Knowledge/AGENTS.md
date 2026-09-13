@@ -453,6 +453,14 @@ failure modes — in the one subsystem already observed failing quietly
 (`BAD_ACCOUNT_KEY`). Revisit for one profile (orchestrator) before ever doing
 five.
 
+**`deliver=all` is a second trap in the same profile.** It means "every platform
+with a configured home channel" and resolves at fire time — so in a profile with
+no platforms it resolves to **zero targets and silently delivers nowhere**. It
+is not the same string as `origin`, so a scan for `origin` misses it entirely;
+that is how three further implementer jobs (the morning briefing and both digest
+scripts) were still dropping their output after the first pass. When auditing
+delivery, enumerate the *resolved* target set, not the literal value.
+
 **Staleness rule (matters for every status check here):** a `last_status`
 failure recorded *before* the job was last reconfigured does not describe its
 current configuration. Without this rule the check stays red for days on the
