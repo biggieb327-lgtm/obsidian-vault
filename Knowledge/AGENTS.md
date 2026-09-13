@@ -64,6 +64,7 @@ To maintain high operating velocity without risking destructive actions or hallu
 
 ### Tier 1: Sovereign Powers (User Confirmation Required)
 Agents cannot execute these autonomously under any circumstances. They must draft the proposed action and request approval:
+- **Mechanical Pre-Execution Block (Sovereign Guard / Orca Pattern):** The `sovereign-guard` plugin intercepts calls to the `terminal` tool on the `pre_tool_call` hook. Any destructive command pattern (e.g. `rm -rf /`, force-pushing to `main`, disk partition formatting, database dropping) is halted with an immediate veto before reaching the operating system shell.
 - Destructive filesystem or process commands (`rm -rf`, dropping databases, terminating system services).
 - Modifying firewall, Tailscale, or root systemd configuration.
 - Off-budget financial movements (moving funds between YNAB envelopes or logging large transfers).
@@ -211,7 +212,8 @@ It contains an offline SQLite FTS5 database (`hermes_rag.sqlite`) indexing **674
 |---|---|---|
 | **DoD Daily Threat Brief** | 07:00 daily | Comprehensive security assessment: VPS ports, auth logs, Linux CVEs, and WA State cyber/physical news. |
 | **Treasury Daily Financial Brief** | 07:30 daily | Deterministic 0-token budget & outflow summary via `treasury_brief.py` (checking balances, debt, top categories). |
-| **Autonomous PR Reviewer** | 12:00 daily | Audits open GitHub Pull Requests across configured repos via `pr_reviewer.py`, inspecting diffs and security flags. |
+| **Weekly Community Knowledge Sync** | Mon 03:00 | Ingest newly announced community showcases and plugins into `hermes-advisor` via `update_advisor_knowledge.py`. |
+| **Autonomous PR Reviewer** | 12:00 ...[truncated]
 | **Executive Cabinet Briefing** | 08:00 daily | Chief of Staff synthesis: Defense, Treasury (YNAB), Intelligence, State, and Legislative updates. |
 | **Congressional Standup** | Mon–Fri 09:00 | Audit Kanban backlog and progress across active departments. |
 | **GAO (Health Audit)** | Every 6h | Run `bulletproof-hermes` infrastructure health check. |
