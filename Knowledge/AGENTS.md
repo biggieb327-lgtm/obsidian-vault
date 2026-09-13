@@ -292,7 +292,7 @@ The auditor enforces three distinct things:
 **Adding a mechanism:** give it a witness. An entry without one is a declaration,
 not a guarantee, and the report says so out loud.
 
-### 9.1 Witnesses that assert end state, not activity
+### 11.1 Witnesses that assert end state, not activity
 
 Three mechanisms cannot be witnessed by freshness, because "nothing happened" is
 their normal successful outcome. They are witnessed by the state they are
@@ -308,7 +308,7 @@ responsible for instead:
 The dispatch witness matters most: a lock *file* outlives its holder, so the old
 check ("file present") would report healthy while the board was silently stalled.
 
-### 9.2 Root-cause fix: delegated-child marker leaked into the shell
+### 11.2 Root-cause fix: delegated-child marker leaked into the shell
 
 The `HERMES_DELEGATED_CHILD_CONTEXT` leak is **fixed at source**, not worked
 around. The terminal session persists shell state by dumping `export -p` into a
@@ -333,7 +333,46 @@ hand-written fake block that satisfied a marker check.
 
 ---
 
-## 10. Constraints System — Learning from Mistakes
+## 10. Token Economy & Model Configuration
+
+Measured, not assumed. `scripts/token_economy.py` records a baseline from
+`state.db` (`baseline`) and fails a regression (`--check`), wired into the
+mechanism registry so the 6-hourly health run catches drift.
+
+**Observed facts (2026-09-13, deepseek/deepseek-v4-flash-0731):**
+
+- cache-hit ratio **98%**; cost **$0.000325/call**
+- the previous default (`google/gemini-3.8-flash`) cost **$0.015453/call — 47.5x more**
+- reasoning is ~50% of output tokens
+- output/input ratio ~0.003: this install is input-dominated, not verbose
+
+**`agent.reasoning_effort`** is the global lever (read by
+`hermes_constants.resolve_reasoning_config`, the single chokepoint for CLI,
+gateway, TUI, cron, `/model` and fallback). Set to `low`. Per-model overrides
+live in `agent.reasoning_overrides`; per-session escape hatch is `/reasoning`.
+Note: `hermes config set` warns this key is "not recognized" — that is the CLI
+key-registry, not the runtime. The runtime reads it; verify with
+`resolve_reasoning_config(cfg, model)`.
+
+**Auxiliary tasks inherit the main model by default.** That is how one aux task
+(`background_review`) reached 17% of all recorded spend — it was simply
+inheriting gemini while gemini was the default. `auxiliary.<task>.{provider,model}`
+overrides it. There are **13** aux slots; `auxiliary` is absent from config.yaml
+until you set one.
+
+**Corrections to commonly-circulated advice:**
+
+- Migrating to `deepseek-v4.1-flash` costs **~5.7x more** on Nous ($0.20/$0.60 per M
+  vs $0.0352/$0.1056; cache read $0.006 vs $0.0011). Not cheaper.
+- Nous pricing is **flat** — there is no peak/off-peak dimension to schedule around.
+- `/thinkon` does not exist in v0.21.0; use `/reasoning`.
+- `incontext` needs a vLLM `/tokenize` endpoint we do not have.
+- Tightening `compression.threshold` is **anti-cache**: a cache hit costs 1/32 of a
+  miss, so rewriting history to shrink a cached context can cost more than it saves.
+
+---
+
+## 11. Constraints System — Learning from Mistakes
 
 ### 10.1 The Constraints File
 
