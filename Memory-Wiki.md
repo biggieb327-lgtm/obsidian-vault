@@ -8,6 +8,16 @@
 - [[Projects-Hub]] — Active and archived projects
 - [[People-Hub]] — Contacts, collaborators, accounts
 - [[Decisions-Log]] — Major decisions, chronological
+- [[Vault-Hygiene-Report]] — Automated health audit
+
+## Core Governance & Architecture
+
+- [[AGENTS]] — Constitutional governance model & cabinet roles
+- [[SOUL]] — Chief of Staff charter & operating rules
+- [[Hermes-Operational-Architecture-Matrix]] — Full system overview
+- [[Hermes-Resilience-Playbook]] — Outage prevention & recovery
+- [[constraints]] — Agent mistake record & lessons
+- [[operational-log]] — System failure log
 
 ## Quick Access
 

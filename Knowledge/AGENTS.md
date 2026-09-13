@@ -209,6 +209,8 @@ The RCA script:
 | **National Memory Hygiene** | Sun 02:00 | Prune stale memory entries and deduplicate records. |
 | **Nightly Dreaming** | 0 3 * * * | Extract action items, decisions, and project context from today's logs; run Hindsight reflect on findings; save to Obsidian daily note. |
 | **2am Micro-App Session (DoS)** | 0 2 * * * | Scan past 7 days of logs for repetitive tasks, wishes, and "wouldn't it be nice if…" signals; build one small tool (CLI script, HTML dashboard, or automation) saved to `~/.hermes/workspace/micro-apps/<date>/`. |
+| **Vault Hygiene Audit** | Sun 04:00 | Scan Obsidian vault for unfiled root notes, broken wikilinks, and orphaned pages via `vault_hygiene.py`. |
+| **Infrastructure Watchdog** | Every 30m | Monitor open ports, service endpoints, and URLs via `watchdog.py`; alert to Matrix only on diff. |
 
 ## 7. Constraints System — Learning from Mistakes
 
