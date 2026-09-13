@@ -22,6 +22,7 @@
 
 ## Quick Access
 
+- [[Daily/2026-09-13]] — Latest daily dreaming & log synthesis
 - `Daily/` — Session logs by date
 - `Knowledge/` — Technical reference
 - `Projects/` — Project-specific docs

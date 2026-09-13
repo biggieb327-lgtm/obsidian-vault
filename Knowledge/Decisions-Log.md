@@ -10,6 +10,8 @@
 | 2026-09-12 | Constraints system deployed | Log mistakes, graduate at seen:2 |
 | 2026-09-12 | YNAB as treasury profile | Dedicated financial administration |
 | 2026-09-12 | Security hardening: Hindsight localhost-only, kill root Hermes, disable observer | Remove public attack surface |
+| 2026-09-13 | Quartermaster architecture patterns adopted | Friction miner, decision ledger, spatial map |
+| 2026-09-13 | Offload LLM workflows to deterministic code | Deterministic local tooling over token burn |
 
 ---
 
