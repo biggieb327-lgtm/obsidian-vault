@@ -379,6 +379,31 @@ until you set one.
 Agent mistakes are logged in `~/.hermes/memories/constraints.md`. Each entry follows this format:
 
 ```
+## 12. Review Routing (Judicial Branch)
+
+`kanban.request_review` takes an OPTIONAL `reviewer` profile. **When it is
+omitted, the task keeps its own assignee and the implementer reviews its own
+work.** There is no config default.
+
+**Convention: same-card review must name the IG explicitly.**
+
+    kanban_request_review(summary=..., reviewer="reviewer")
+
+Until 2026-09-09 this could not work: the `reviewer` profile did not exist, so
+the one review ever requested (`t_e8a1896d`) was reassigned by hand with the
+comment "Reassigning from non-existent reviewer profile to implementer", and
+the dispatcher spawned `implementer` to audit its own work. The profile now
+exists and is registered, so the documented route works.
+
+Note `kanban.review_dispatch: true` does NOT mean "send reviews to the reviewer
+profile" — it means "spawn the assigned profile with the bundled `sdlc-review`
+skill". Routing to the IG depends entirely on passing `reviewer=`.
+
+Every completed-but-unreviewed task is therefore normal by default; the board
+does not review anything unless asked to.
+
+---
+
 ## C<N> — <title>
 
 **What happened:** <one sentence describing the mistake>
