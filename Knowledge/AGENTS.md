@@ -211,6 +211,7 @@ It contains an offline SQLite FTS5 database (`hermes_rag.sqlite`) indexing **674
 |---|---|---|
 | **DoD Daily Threat Brief** | 07:00 daily | Comprehensive security assessment: VPS ports, auth logs, Linux CVEs, and WA State cyber/physical news. |
 | **Treasury Daily Financial Brief** | 07:30 daily | Deterministic 0-token budget & outflow summary via `treasury_brief.py` (checking balances, debt, top categories). |
+| **Autonomous PR Reviewer** | 12:00 daily | Audits open GitHub Pull Requests across configured repos via `pr_reviewer.py`, inspecting diffs and security flags. |
 | **Executive Cabinet Briefing** | 08:00 daily | Chief of Staff synthesis: Defense, Treasury (YNAB), Intelligence, State, and Legislative updates. |
 | **Congressional Standup** | Mon–Fri 09:00 | Audit Kanban backlog and progress across active departments. |
 | **GAO (Health Audit)** | Every 6h | Run `bulletproof-hermes` infrastructure health check. |
