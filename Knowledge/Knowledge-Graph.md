@@ -1,5 +1,5 @@
 # Knowledge Graph & Concept Cluster Index
-> Automated topological graph generated: 2026-09-13T04:52:07 UTC
+> Automated topological graph generated: 2026-09-13T04:55:54 UTC
 
 A synthesized overview of topics, conceptual clusters, and cross-document links in this vault.
 
@@ -90,7 +90,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 
 | Note | Inbound Links | Outbound Links | Auto-Assigned Clusters |
 |---|---|---|---|
-| [[Memory-Wiki]] | 5 | 13 | `governance`, `resilience`, `infrastructure` |
+| [[Memory-Wiki]] | 5 | 14 | `governance`, `resilience`, `infrastructure` |
 | [[Decisions-Log]] | 5 | 4 | `governance`, `memory`, `finance`, `automation` |
 | [[People-Hub]] | 4 | 7 | _none_ |
 | [[AI-Agent-Hub]] | 4 | 17 | `governance`, `memory` |
