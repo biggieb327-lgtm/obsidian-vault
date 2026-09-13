@@ -10,6 +10,7 @@
 - [[Decisions-Log]] — Major decisions, chronological
 - [[Vault-Hygiene-Report]] — Automated health audit
 - [[WORKSPACE_MAP]] — 0-token system orientation map
+- [[2026-09-13]] — Latest Daily Dreaming log
 
 ## Core Governance & Architecture
 
