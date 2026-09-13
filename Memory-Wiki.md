@@ -9,6 +9,7 @@
 - [[People-Hub]] — Contacts, collaborators, accounts
 - [[Decisions-Log]] — Major decisions, chronological
 - [[Vault-Hygiene-Report]] — Automated health audit
+- [[WORKSPACE_MAP]] — 0-token system orientation map
 
 ## Core Governance & Architecture
 
