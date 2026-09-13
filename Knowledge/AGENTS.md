@@ -193,9 +193,19 @@ The RCA script:
 - Generates a blame-free analysis report
 - Recommends immediate, short-term, and long-term actions
 
+## 6. Installed Intelligence & Community Advisory
+
+### Hermes Advisor Skill (`hermes-advisor`)
+The system has `hermes-advisor` installed at `~/.hermes/skills/hermes-advisor/`.
+It contains an offline SQLite FTS5 database (`hermes_rag.sqlite`) indexing **674 real-world Hermes showcases** and **487 community skills/plugins** from the Nous Research Discord.
+
+- **Query Tool:** `python3 ~/.hermes/skills/hermes-advisor/scripts/query_knowledge.py "<query>"`
+- **CLI Blueprint Generator:** `python3 ~/.hermes/skills/hermes-advisor/scripts/advisor_cli.py "<concept>"`
+- Use this database whenever researching new agent tools, architectures, or community precedents before reinventing wheels.
+
 ---
 
-## 6. Recurring Government Blueprints (Cron Jobs)
+## 7. Recurring Government Blueprints (Cron Jobs)
 
 | Entity / Agency | Cadence | Mission |
 |---|---|---|
