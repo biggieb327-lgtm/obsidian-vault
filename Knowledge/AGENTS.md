@@ -427,6 +427,39 @@ does not review anything unless asked to.
 
 ---
 
+## 13. Cron Delivery for Platform-less Profiles
+
+Secondary profiles (orchestrator, writer, researcher, reviewer, implementer)
+have **no messaging platform**. A job with `deliver: origin` there fails with
+*"platform 'matrix' not configured/enabled"* — and the failure notice goes to
+the same dead target, so the result and the error are both invisible. Six jobs
+sat in `delivery_failed` that way.
+
+**Decision: `deliver: local` for those jobs, plus one aggregator.**
+
+- Jobs write to `<profile_home>/cron/output/<job_id>/<timestamp>.md`.
+- `scripts/cron_digest.py` (cron `d77a845c7e13`, every 2h, no-agent) collects
+  new artifacts from every profile and posts ONE digest via the default
+  profile, which owns the only working Matrix adapter. Silent when idle.
+- Agent artifacts are `## Prompt` + `## Response`; the digest takes only the
+  response, strips the no-agent header block, and skips silent runs.
+- `scripts/check_cron_output.py` (mechanism `cron-output`) is the witness:
+  every enabled job's newest artifact must be at/after its last run.
+
+**Rejected: an own Matrix account per profile.** It is the more faithful model
+(departments report in their own voice, two-way replies), but it costs five
+accounts, five E2EE crypto stores to keep verified, and five silent auth
+failure modes — in the one subsystem already observed failing quietly
+(`BAD_ACCOUNT_KEY`). Revisit for one profile (orchestrator) before ever doing
+five.
+
+**Staleness rule (matters for every status check here):** a `last_status`
+failure recorded *before* the job was last reconfigured does not describe its
+current configuration. Without this rule the check stays red for days on the
+weekly jobs because re-pinning a model does not rewrite history.
+
+---
+
 ## C<N> — <title>
 
 **What happened:** <one sentence describing the mistake>
