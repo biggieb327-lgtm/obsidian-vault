@@ -77,6 +77,7 @@ Applied to all technical, code, and infrastructure deliverables before tasks can
   - The reviewer subagent is given: the original goal/acceptance criteria, specific constraints, and the exact files changed or git diff.
   - The reviewer subagent executes: verification tests (e.g. `pytest`, syntax check, execution test) and inspects the code diff for regressions, edge cases, missing error handlers, and hallucinated claims.
   - The primary agent CANNOT declare completion until the review subagent returns an explicit PASS without outstanding defects.
+- **Testing calibration:** Require tests that are *meaningful and necessary* to verify a change — for non-trivial logic (branches, loops, parsers, money/security paths) or when the failure path is genuinely uncertain. Do **not** demand tests that merely mirror a reversible, low-impact change; a wrapper around an existing call or a doc edit needs no test. Repeat/broaden testing only when new changes, failures, or unresolved concerns justify it — otherwise move toward completion. Over-testing a small change burns budget and slows the loop as surely as under-testing breaks it.
 - **Shared Task Ledger Pattern (GVS5H):** For complex or multi-phase tasks, agents coordinate through a persistent task ledger file (`~/.hermes/task_ledger.json` or `plan.md`) recording current step, artifacts, and test outcomes to prevent context compression amnesia.
 - **Research Deliverables:** The `reviewer` validates that claims are backed by `grounded-citations` before archiving to Notion/Obsidian.
 
@@ -542,3 +543,21 @@ If delta is consistently negative → you're overconfident. If consistently posi
 The weekly review asks "mistakes made?" — this question is now formalized:
 - If the answer references a constraint, increment its `seen` count
 - If the answer is "none," check the Minor log — an empty section means under-reporting, not a clean run
+
+## 14. Instruction & Skill Hygiene (progressive disclosure)
+
+Instructions and skills should be *lean and contextual*, not exhaustive:
+- **Skill descriptions are triggers, not essays.** Keep them short, self-contained,
+  and specific about WHEN they apply ("use when adding a DB migration", not "use
+  when working with databases"). A description that over-claims applicability
+  gets loaded when it should not be — wasted tokens and misapplied behavior.
+- **Progressive disclosure.** The root `SKILL.md` should route and point to the
+  detail (reference files, scripts) the task actually needs, not inline a full
+  itinerary. Read the piece you need when you need it; do not front-load a doc
+  stack into context before every edit.
+- **Instructions shape behavior.** Periodically audit skills and `AGENTS.md`/
+  `SOUL.md` for instructions that over-constrain, contradict each other, or would
+  make the agent stall or ask when it should proceed. A skill that exists should
+  earn its tokens every load.
+- **Reserve "ask first" for what is genuinely destructive/irreversible** (Tier 1).
+  Otherwise bias toward action and carry the task to completion.
