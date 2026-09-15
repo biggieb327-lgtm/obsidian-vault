@@ -151,19 +151,25 @@ iifname "lo" accept
 ct state established,related accept
 ct state invalid drop
 icmp + icmpv6 echo / errors accept
-iifname "tailscale0" accept            # entire tailnet (covers SSH)
-iifname "eth0" tcp dport 8644 ct state new limit rate 20/second accept   # webhook, rate-limited
-iifname "eth0" tcp dport 8644 accept
+iifname "tailscale0" accept            # entire tailnet (covers SSH + webhook/API)
 log prefix "hostfw-drop: " limit rate 3/second burst 10 packets drop      # logged drop
 ```
 `host-firewall.sh` runs `nft --check -f hostfw.nft` BEFORE flushing, so a bad
 config can never leave the table empty (open) — it refuses to apply.
+**Public-internet exposure is ZERO:** SSH, the 8642 API, and the 8644 webhook are
+all tailnet/loopback-only (2026-09-15: `eth0 8644` removed — the webhook platform
+has no subscriptions, so a public unauth listener was dead risk). Optional
+tailnet-ACL narrowing to the owner's phone (`iifname "tailscale0" ip saddr
+100.113.100.67 accept`) is documented but NOT yet applied — pending t_20321384.
 
 ### 5.3 Password auth OFF + SSH key installed
 
 - `PasswordAuthentication no`, `PermitRootLogin prohibit-password` (key-only root).
 - User's `ed25519` key installed at `/root/.ssh/authorized_keys` (0600). Verified:
   the fingerprint `SHA256:y/bfXOQ…` authenticated from the phone.
+- **2026-09-15:** a second, distinct **offline recovery key** (`recovery-offline-20260915`,
+  fingerprint `SHA256:OaoQkI9CGdbP/DZt4WBlbv2saxwqxKPbS8LXEWEAxSs`) was added to
+  `authorized_keys` so losing the primary key is not total loss (see §11 Recovery).
 - Log-proof the old path died: every successful root login (Aug–Sep) was
   `Accepted password`; after this change, the only new success is
   `Accepted publickey`. The old `termux` public key was an orphan (no matching
@@ -203,11 +209,13 @@ sudo fail2ban-client set sshd unbanip 203.0.113.77
 
 ## 7. Current Soft Spots
 
-### 7.1 SSH port 22 — closed to the internet (tailnet-only) ✅
+### 7.1 SSH port 22 — closed to the internet (tailnet-only, owner-scoped) ✅
 Applied per approval. `hostfw.nft` has **no** `eth0 … 22` rule — shell access is
-tailnet-only via `tailscale0` (which allows all). The internet cannot reach 22.
-Reopen if ever needed: add `iifname "eth0" tcp dport 22 accept` to
-`/etc/nftables.d/hostfw.nft` and run `sudo host-firewall.sh`.
+tailnet-only via `tailscale0`, and **only the owner's phone device(s)** (see
+`hostfw.nft` saddr rules) can reach it. Any other tailnet node gets policy-drop.
+The internet cannot reach 22. Reopen if ever needed: add
+`iifname "eth0" tcp dport 22 accept` to `/etc/nftables.d/hostfw.nft` and run
+`sudo host-firewall.sh`.
 
 ### 7.2 `0.0.0.0` binds
 `8644` (webhook) must stay publicly reachable for the webhook platform, so it is
@@ -224,8 +232,9 @@ The `addr-set-sshd` set lacks `flags interval`, so brute subnet bans error out.
 Single-IP bans (the real attacker case) work and are verified.
 
 ### 7.5 Tailscale is load-bearing for shell access; IPv6 external surface = untested
-Only the phone+box are on the tailnet. v6 outbound quantity unverified from
-outside; hostfw allows v6 ICMP/ND and applies the same drop policy.
+Only the owner's phone + box are on the tailnet, and hostfw now scopes tailnet
+access to the phone's v4+v6 tailnet addresses. v6 outbound quantity unverified
+from outside; hostfw allows v6 ICMP/ND and applies the same drop policy.
 
 ---
 
@@ -271,3 +280,53 @@ plus a self-heal timer** (the drift-guard), and verification must be **pure-host
   and skill writes) bound to `0.0.0.0`, a larger risk than the port under
   discussion. It was removed (quarantined to
   `~/.hermes/backups/console-removed-20260915-052626/`).
+
+---
+
+## 11. Recovery — root SSH keys (2026-09-15)
+
+Two distinct root SSH keys are now in `/root/.ssh/authorized_keys` so losing one
+is not total loss:
+
+| Key | Comment | Fingerprint (SHA256) | Private half |
+|---|---|---|---|
+| Primary | `brian-termux` (phone / Termux) | `y/bfXOQ3JP6lM5PGbTp0yBvaXIyvruD4Nb0t0CJMzl8` | on the phone |
+| **Recovery** | `recovery-offline-20260915` | `OaoQkI9CGdbP/DZt4WBlbv2saxwqxKPbS8LXEWEAxSs` | **kept OFFLINE** by the Sovereign (delivered to their chat, not stored on this VPS) |
+
+### Key-loss recovery procedure (primary key lost)
+
+1. **If the recovery private key is available (offline):** use it to log in —
+   `ssh -i <recovery_key> root@100.81.134.67` (Tailscale on the phone) or from
+   any client. Then install a fresh key: append the new public key to
+   `/root/.ssh/authorized_keys` (`chown root:root`, `chmod 0600`), verify it
+   authenticates, and remove the lost key's line.
+2. **If BOTH keys are lost:** the only path is the **Contabo web console** →
+   VPS → Console (provider-side, independent of port 22/Tailscale). From the
+   console root shell, install a new public key into `/root/.ssh/authorized_keys`
+   (0600) and reconnect over the tailnet. This is why the console fallback is a
+   documented precondition — see §3.
+3. **If Tailscale itself is down:** re-run `sudo tailscale up` on the box and
+   reopen the app on the phone (see §8 Rollback).
+
+### Tailscale ACL (control-plane) — defense in depth
+
+The firewall enforces SSH/admin at the network layer (only the owner's phone
+tailnet address passes), which is the strong, always-on control. The Tailscale
+**admin-console ACL** (HuJSON) is a separate, weaker-in-depth layer that cannot be
+edited from this VPS (no API key; CLI cannot write ACLs). If desired, apply this
+in the Tailscale admin console → Access Controls so SSH is additionally gated by
+tailnet policy (not just the firewall):
+
+```json
+{
+  "tagOwners": { "tag:server": ["autogroup:admin"] },
+  "acls": [
+    { "action": "accept", "src": ["brianault327@gmail.com"], "dst": ["100.81.134.67:22"] }
+  ]
+}
+```
+
+Replace the e-mail with the owner account and `100.81.134.67` with this box's
+tailnet IP. The tailnet currently holds only the owner's two devices, so today
+the firewall scoping already equals "owner only"; the ACL adds a control-plane
+guarantee that holds even if a non-owner node joins later.
