@@ -2,7 +2,7 @@
 
 > **Purpose:** Record how the public SSH surface of this VPS was closed, as a runbook that can be re-executed on a rebuild.
 > **Host:** `vmi3420780` (Contabo) — public `94.72.123.175`, tailnet `100.81.134.67`
-> **Executed:** 2026-09-15
+> **Executed:** 2026-09-15 (two phases — see below)
 > **Status:** COMPLETE AND VERIFIED
 > **Related:** [[Hermes-Resilience-Playbook]] · [[constraints]] · [[Decisions-Log]]
 
@@ -15,18 +15,30 @@ password authentication enabled by a root-only cloud-init drop-in. Over roughly
 three days `auth.log.1` recorded **18,474 failed password attempts** and **zero
 successful intrusions**.
 
-The fix taken was **not** to fight the guessing — it was to remove the exposure.
-Port 22 is now reachable only over the Tailscale interface. The internet can no
-longer see the service at all.
+**Phase 1 (04:39–05:11): ufw tailnet-only.** Port 22 was removed from the public
+internet and left reachable only over the Tailscale interface. This phase used
+UFW and is documented in §4.1–4.4.
 
-**Outcome:**
+**Phase 2 (same day ~08:00–09:00): firewall re-architecture.** UFW was found to
+be **silently non-enforcing** (Docker 29 wipes the entire nftables ruleset on any
+container create/remove/daemon restart — see §9). Enforcement moved to a
+Docker-immune custom nftables table and UFW was disabled. **This phase also
+turned password auth fully off and installed an SSH key.**
 
-- `22/tcp` — closed to the internet, verified from 8 external nodes (all time out)
-- `fail2ban` — installed, `active` + `enabled`, `sshd` jail on
-- Access path — Termux → `100.81.134.67` with Tailscale connected
+**Outcome (current, enforced):**
+- Host firewall: `table inet hostfw` (nftables), policy **drop**, loaded by
+  `host-firewall.service` + self-healing `firewall-drift-guard.timer` (20 s)
+- `22/tcp` — **public again in phase 2** (see the ⚠️ divergence in §7.1; the
+  phase-1 intent was tailnet-only and restoring that is recommended)
+- Password auth — **OFF** (`PasswordAuthentication no`, `PermitRootLogin
+  prohibit-password`); root SSH is **key-only** (`/root/.ssh/authorized_keys`)
+- `fail2ban` — `active` + `enabled`, `sshd` jail; single-IP bans **verified**
+  landing in `inet f2b-table addr-set-sshd`
+- `8644` (Hermes webhook API) — **explicitly allowed** through hostfw (the
+  webhook platform needs inbound); `8642` is loopback-only
+- Access path — Termux → `100.81.134.67` with Tailscale (works), plus home
+  public IPs over key auth
 - Fallback — Contabo web console (provider-side, independent of port 22)
-- Hermes Console — decommissioned the same day: ports `9119`/`9131` removed (§7)
-- Hermes API (`8642`/`8644`) — unchanged, still blocked by ufw
 
 ---
 
@@ -72,7 +84,7 @@ Tailscale must be connected on the phone whenever shell access is needed.
 
 ---
 
-## 4. The Change
+## 4. Phase 1 — UFW (historical: superseded by Phase 2)
 
 ### 4.1 ufw — rules before
 
@@ -94,146 +106,169 @@ Tailscale must be connected on the phone whenever shell access is needed.
 [4] 22/tcp (v6) on tailscale0   ALLOW IN    Anywhere (v6)
 ```
 
-No rule binds port 22 to the internet any more. The remaining four are redundant
-with each other (`Anywhere on tailscale0` already covers every port) — **leave
-them alone**, tidying is pure risk.
+No rule bound port 22 to the internet. The remaining four are redundant with each
+other (`Anywhere on tailscale0` already covers every port) — leave them alone.
 
-### 4.3 Commands, in order
-
-```bash
-# 1. Read the CURRENT numbering. Never act on a remembered number.
-sudo ufw status numbered
-
-# 2. Delete the public rules, HIGHEST number first so renumbering cannot bite.
-sudo ufw delete <v6 public rule number>     # prompt must NOT mention tailscale0
-sudo ufw delete <v4 public rule number>     # prompt must NOT mention tailscale0
-
-# 3. Confirm only tailnet-scoped rules remain.
-sudo ufw status numbered
-```
-
-### 4.4 fail2ban
+### 4.3 fail2ban (phase 1)
 
 ```bash
 sudo apt-get install -y fail2ban
 systemctl is-active fail2ban     # -> active
 systemctl is-enabled fail2ban    # -> enabled
 ```
+Debian/Ubuntu ship `jail.d/defaults-debian.conf` with the `sshd` jail enabled
+(`banaction = nftables`, `backend = systemd`).
 
-Debian/Ubuntu ship `jail.d/defaults-debian.conf` with the `sshd` jail already
-enabled (`enabled = true`, `banaction = nftables`, `backend = systemd`). No jail
-config was needed.
+### 4.4 Why Phase 1 did not hold (the Lesson that drove Phase 2)
+
+`ufw status` reported `ENABLED=yes`, but **no rules were ever live in the
+kernel** (`nft list ruleset` empty, `iptables -S INPUT` → `-P INPUT ACCEPT`).
+Despite `ufw --force enable` "succeeding", the box had **no firewall at all**, so
+`0.0.0.0:22` and `0.0.0.0:8644` were publicly reachable. UFW cannot survive on a
+Docker host because Docker 29 resets the whole nftables ruleset (see §9).
 
 ---
 
-## 5. Verification
+## 5. Phase 2 — Docker-immune host firewall (current)
 
-**External probe — the only honest check.** `ufw` saying `ENABLED=yes` says
-nothing about which ports actually pass.
+Ran ~08:00–09:00 the same day after Phase 1's silent failure was proven.
 
-Method: `check-host.net/check-tcp?host=IP:PORT`, then poll `/check-result/<id>`.
-Requires a browser `User-Agent` or it returns **403**.
+### 5.1 Files / services
+
+| Component | Path / unit | Role |
+|---|---|---|
+| Ruleset (source of truth) | `/etc/nftables.d/hostfw.nft` | `table inet hostfw` — policy drop + allows |
+| Loader | `/usr/local/sbin/host-firewall.sh` | flushes *only* `inet hostfw`, then `nft -f` |
+| Load at boot | `host-firewall.service` | oneshot, `After=docker` (window-free) |
+| Self-heal | `firewall-drift-guard.timer` (20 s) | re-loads hostfw if Docker churn wipes it |
+| Forward bypass close | `docker-ufw-guard.service` | drops new inbound on eth0 in `DOCKER-USER` |
+| Disabled | `ufw.service`, `nftables.service` | `nftables.service` would `flush ruleset` (nukes Docker) |
+
+### 5.2 The ruleset (`inet hostfw`, policy DROP)
 
 ```
-:22    -> closed/filtered   8/8 nodes (timeouts)
-:8642  -> filtered
-:8644  -> filtered
-:9119  -> filtered
-:9131  -> filtered
-:45682 -> filtered
+iifname "lo" accept
+ct state established,related accept
+ct state invalid drop
+icmp + icmpv6 echo / errors accept
+iifname "tailscale0" accept            # entire tailnet
+iifname "eth0" tcp dport 22 accept     # SSH
+iifname "eth0" tcp dport 8644 accept   # Hermes webhook API
 ```
+Everything else inbound is dropped.
 
-**Use a control port.** Probe a loopback-bound service alongside the real targets
-and the verdict proves itself: two nodes reported `8888` and `53` reachable, but
-both are bound to `127.0.0.x` and *cannot* be publicly reachable. The probe was
-broken, not the firewall. Confirm binds first:
+### 5.3 Password auth OFF + SSH key installed
+
+- `PasswordAuthentication no`, `PermitRootLogin prohibit-password` (key-only root).
+- User's `ed25519` key installed at `/root/.ssh/authorized_keys` (0600). Verified:
+  the fingerprint `SHA256:y/bfXOQ…` authenticated from the phone.
+- Log-proof the old path died: every successful root login (Aug–Sep) was
+  `Accepted password`; after this change, the only new success is
+  `Accepted publickey`. The old `termux` public key was an orphan (no matching
+  private key) and was replaced.
+
+---
+
+## 6. Verification
+
+**Verification gotcha on a Docker host: never read the firewall with
+`docker run … nft list ruleset`.** Spinning that ephemeral container *itself*
+triggers Docker to reset nftables, wiping the table you are about to read — it
+always looks broken. Read the live ruleset from a **pure-host** vantage:
 
 ```bash
-ss -tln | awk '{print $4}' | sort -u
+# as root, host-side, no docker-run:
+systemd-run --no-block --collect /bin/sh -c 'nft list table inet hostfw > /tmp/fw.txt; nft list table inet f2b-table >> /tmp/fw.txt'
+cat /tmp/fw.txt
 ```
 
-**Full listener inventory (post-change):**
+**External probe — the only honest reachability check.** `ufw`/nft saying
+`ENABLED` says nothing about which ports actually pass. `check-host.net`
+(check-tcp over several independent nodes). Probe a control port that is
+loopback-bound (`8888`, `53`) as a self-validator — if two nodes report it
+reachable it is loopback-only and the probe is broken, not the firewall.
 
-- **Public-bound, all ufw-blocked:** `22` (sshd, now tailnet-only),
-  `8642`/`8644` (Hermes API). `9119` (dashboard) and `9131` (console bridge)
-  were **decommissioned** the same day — see §7.
-- **Loopback only:** `8888`, `9999` (Hindsight), `53` (systemd-resolved)
-- **Tailnet only:** `100.81.134.67:45682` (Tailscale's own listener)
-
-**fail2ban actually banning** (config ≠ rules landing):
+**fail2ban actually banning** (config ≠ rules landing) — TEST an action, don't
+just read `enabled = true`:
 
 ```bash
-sudo fail2ban-client status sshd      # expect Currently banned / Total banned
+sudo fail2ban-client set sshd banip 203.0.113.77; sleep 2
+nft list set inet f2b-table addr-set-sshd    # expect the IP present
+sudo fail2ban-client set sshd unbanip 203.0.113.77
 ```
 
 ---
 
-## 6. Rollback
+## 7. Current Soft Spots
 
-**If the tailnet path fails and you need the public port back** — run in the
-Contabo web console:
+### 7.1 ⚠️ SSH port 22 is public again — your call
+Phase 1 deliberately made 22 **tailnet-only** (internet cannot reach it). Phase 2's
+`hostfw.nft` currently allows `eth0 22` because the earlier session assumed the
+user logs in from home public IPs. The **active device (Termux/phone) is on the
+tailnet**, so closing 22 back to tailnet-only restores your Phase-1 intent and
+removes the public exposure — SSH does not need eth0. To do it, remove the
+`iifname "eth0" tcp dport 22 accept` line from `/etc/nftables.d/hostfw.nft` and
+run `sudo host-firewall.sh`. **Not yet done — pending approval.**
 
-```bash
-sudo ufw allow 22/tcp
-```
+### 7.2 `0.0.0.0` binds
+`8644` (webhook) must stay publicly reachable for the webhook platform, so it is
+explicitly allowed — leave it. `8642` is loopback-only. Rebind anything you do
+not want exposed to `127.0.0.1` or the tailnet IP.
 
-That reopens 22 to the internet. Accept it as a temporary measure only.
+### 7.3 Docker churn transiently lifts the firewall (~≤20 s)
+Any ephemeral `docker run`/`docker rm` resets all nft tables; the
+`firewall-drift-guard.timer` re-applies within 20 s. Persistent containers
+(Hindsight, Hermes gateways) do not churn, so steady-state is enforced.
 
-**If Tailscale itself is the problem:** re-running `sudo tailscale up` on the box
-and reopening the app on the phone restores the tailnet route. `tailscaled` is a
-system service and survives reboots.
+### 7.4 fail2ban CIDR bans fail
+The `addr-set-sshd` set lacks `flags interval`, so brute subnet bans error out.
+Single-IP bans (the real attacker case) work and are verified.
 
-**If locked out entirely:** Contabo web console. This is why precondition 2
-exists.
-
----
-
-## 7. Known Remaining Soft Spots
-
-1. **`0.0.0.0` binds.** The Hermes API (`8642`/`8644`) is one ufw
-   misconfiguration away from being public. Rebinding it to `127.0.0.1` — or the
-   tailnet IP — would make it unreachable regardless of the firewall. **Not yet
-   done.**
-
-   The Hermes Console *was* the larger part of this exposure — its bridge could
-   write SOUL/memory/skills over HTTP — and it was **removed** on 2026-09-15
-   rather than rebound, because it was unused. Removed, not merely disabled:
-   unit files, wrapper scripts and `bridge.env` were quarantined to
-   `~/.hermes/backups/console-removed-20260915-052626/`. `health_check.py` now
-   flags a listener on either port as a regression.
-2. **Password auth over the tailnet remains enabled.** Acceptable: only devices on
-   the tailnet can reach the port, and the tailnet is this box plus the phone. An
-   SSH key in Termux would let it be turned off entirely.
-3. **`PermitRootLogin yes`** is unchanged. With 22 off the internet it is no longer
-   the exposure it was.
-4. **Tailscale is now load-bearing for shell access.** It was *not* before — Hermes
-   itself does not depend on it (Matrix runs over the public internet). The
-   dependency introduced here is inbound reachability only.
-5. **IPv6 external surface untested.** `check-host` rejects the bracketed v6
-   target format and `/etc/ufw/user6.rules` is root-only. The v6 rules in
-   `ufw status` are tailnet-scoped, so the intent is correct, but it is unproven
-   from outside.
+### 7.5 Tailscale is load-bearing for shell access; IPv6 external surface = untested
+Only the phone+box are on the tailnet. v6 outbound quantity unverified from
+outside; hostfw allows v6 ICMP/ND and applies the same drop policy.
 
 ---
 
-## 8. Lessons (full text in the `hermes-infrastructure` skill)
+## 8. Rollback
 
+- **Reopen a port in the new firewall:** edit `/etc/nftables.d/hostfw.nft`, then
+  `sudo /usr/local/sbin/host-firewall.sh` (or `systemctl restart host-firewall`).
+- **Restore the whole pre-hardening state:** `~/.hermes/scripts/rollback.sh
+  ~/.hermes/backups/pre-change-20260915-082211/` (taken before this phase), then
+  restart the gateway.
+- **If Tailscale is the problem:** re-run `sudo tailscale up` on the box and
+  reopen the app on the phone.
+- **If locked out entirely:** Contabo web console (this is why precondition 2
+  exists).
+
+---
+
+## 9. Root-cause lesson — Docker 29 wipes ALL of nftables
+
+On every container **create/remove** and daemon **start/restart**, Docker 29
+resets the **entire nftables ruleset** — not just `ip/ip6 filter`. It silently
+wipes UFW's rules, any custom iptables table, AND fail2ban's `f2b-table`. This is
+why the box had no firewall despite `ufw ENABLED=yes`, and why a statically-loaded
+ruleset cannot persist. Enforcement therefore uses a **custom `table inet hostfw`
+plus a self-heal timer** (the drift-guard), and verification must be **pure-host**
+(never `docker run`). Full treatment in the `docker-ufw-firewall-pitfall` skill.
+
+## 10. Lessons (full text in the `hermes-infrastructure` skill)
+
+- **A firewall that reports "enabled" is not proof it is enforcing.** Verify the
+  live kernel ruleset (`nft list ruleset`), not the config file.
 - **`ufw delete <number>` renumbers on every delete, and its confirmation prompt
-  does not distinguish v4 from v6** — both print as `allow 22/tcp`. Re-read the
-  list after each delete.
-- **The safe veto is interface scope, not the number.** If the prompt names a rule
-  containing `on tailscale0`, answer `n`. This check caught a would-be lockout: an
-  `allow in on tailscale0 to any port 22` had been appended since the last
-  listing, shifting the numbers so the presumed "public v6" slot was actually the
-  lifeline.
+  does not distinguish v4 from v6.** Re-read the list after each delete; veto by
+  interface scope, not number.
 - **Prove the replacement path before deleting the original.** Never remove the
   last working route to a box you cannot physically reach.
+- **Testing a ban action requires actually firing it and reading the set back.**
+  `enabled=true` until the ban lands and is gone again proves nothing.
 - **Find out what the user actually types in before prescribing client-side
-  changes.** "My SSH app is my VPS provider" is a category error — the provider is
-  the server side, the client is Termux.
-- **Prove the incident is over by removing the exposure, not by fighting the
-  guessing.** `fail2ban` defends; closing the port makes the question moot.
-- **Identify every listener, not just the one you were asked about.** The SSH
-  review surfaced a write-capable HTTP bridge (`hermes_bridge.py` — SOUL,
-  memory and skill writes) bound to `0.0.0.0`, a larger risk than the port under
-  discussion. Ask what each listener *does* before deciding it is fine.
+  changes.** Provider console vs. Termux are different sides of the socket.
+- **Identify every listener, not just the one you were asked about.** This
+  review surfaced a write-capable HTTP bridge (`hermes_bridge.py` — SOUL, memory
+  and skill writes) bound to `0.0.0.0`, a larger risk than the port under
+  discussion. It was removed (quarantined to
+  `~/.hermes/backups/console-removed-20260915-052626/`).
