@@ -138,23 +138,26 @@ Ran ~08:00–09:00 the same day after Phase 1's silent failure was proven.
 |---|---|---|
 | Ruleset (source of truth) | `/etc/nftables.d/hostfw.nft` | `table inet hostfw` — policy drop + allows |
 | Loader | `/usr/local/sbin/host-firewall.sh` | flushes *only* `inet hostfw`, then `nft -f` |
-| Load at boot | `host-firewall.service` | oneshot, `After=docker` (window-free) |
-| Self-heal | `firewall-drift-guard.timer` (20 s) | re-loads hostfw if Docker churn wipes it |
+| Load at boot | `host-firewall.service` | oneshot, `Before=docker` (firewall early) |
+| Rapid heal | `docker-fw-watcher.service` | `After=docker`, re-applies on every container event (double-tap) |
+| Safety net | `firewall-drift-guard.timer` (5 s) | re-loads hostfw + DOCKER-USER if anything wipes them |
 | Forward bypass close | `docker-ufw-guard.service` | drops new inbound on eth0 in `DOCKER-USER` |
 | Disabled | `ufw.service`, `nftables.service` | `nftables.service` would `flush ruleset` (nukes Docker) |
 
-### 5.2 The ruleset (`inet hostfw`, policy DROP)
+### 5.2 The ruleset (`inet hostfw`, policy DROP, loaded atomically via `nft --check`)
 
 ```
 iifname "lo" accept
 ct state established,related accept
 ct state invalid drop
 icmp + icmpv6 echo / errors accept
-iifname "tailscale0" accept            # entire tailnet
-iifname "eth0" tcp dport 22 accept     # SSH
-iifname "eth0" tcp dport 8644 accept   # Hermes webhook API
+iifname "tailscale0" accept            # entire tailnet (covers SSH)
+iifname "eth0" tcp dport 8644 ct state new limit rate 20/second accept   # webhook, rate-limited
+iifname "eth0" tcp dport 8644 accept
+log prefix "hostfw-drop: " limit rate 3/second burst 10 packets drop      # logged drop
 ```
-Everything else inbound is dropped.
+`host-firewall.sh` runs `nft --check -f hostfw.nft` BEFORE flushing, so a bad
+config can never leave the table empty (open) — it refuses to apply.
 
 ### 5.3 Password auth OFF + SSH key installed
 
