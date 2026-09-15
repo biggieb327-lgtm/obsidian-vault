@@ -28,8 +28,7 @@ turned password auth fully off and installed an SSH key.**
 **Outcome (current, enforced):**
 - Host firewall: `table inet hostfw` (nftables), policy **drop**, loaded by
   `host-firewall.service` + self-healing `firewall-drift-guard.timer` (20 s)
-- `22/tcp` — **public again in phase 2** (see the ⚠️ divergence in §7.1; the
-  phase-1 intent was tailnet-only and restoring that is recommended)
+- `22/tcp` — **tailnet-only** (no eth0 rule; the internet cannot reach it)
 - Password auth — **OFF** (`PasswordAuthentication no`, `PermitRootLogin
   prohibit-password`); root SSH is **key-only** (`/root/.ssh/authorized_keys`)
 - `fail2ban` — `active` + `enabled`, `sshd` jail; single-IP bans **verified**
@@ -201,14 +200,11 @@ sudo fail2ban-client set sshd unbanip 203.0.113.77
 
 ## 7. Current Soft Spots
 
-### 7.1 ⚠️ SSH port 22 is public again — your call
-Phase 1 deliberately made 22 **tailnet-only** (internet cannot reach it). Phase 2's
-`hostfw.nft` currently allows `eth0 22` because the earlier session assumed the
-user logs in from home public IPs. The **active device (Termux/phone) is on the
-tailnet**, so closing 22 back to tailnet-only restores your Phase-1 intent and
-removes the public exposure — SSH does not need eth0. To do it, remove the
-`iifname "eth0" tcp dport 22 accept` line from `/etc/nftables.d/hostfw.nft` and
-run `sudo host-firewall.sh`. **Not yet done — pending approval.**
+### 7.1 SSH port 22 — closed to the internet (tailnet-only) ✅
+Applied per approval. `hostfw.nft` has **no** `eth0 … 22` rule — shell access is
+tailnet-only via `tailscale0` (which allows all). The internet cannot reach 22.
+Reopen if ever needed: add `iifname "eth0" tcp dport 22 accept` to
+`/etc/nftables.d/hostfw.nft` and run `sudo host-firewall.sh`.
 
 ### 7.2 `0.0.0.0` binds
 `8644` (webhook) must stay publicly reachable for the webhook platform, so it is
