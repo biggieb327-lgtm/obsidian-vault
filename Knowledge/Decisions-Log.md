@@ -12,6 +12,8 @@
 | 2026-09-12 | Security hardening: Hindsight localhost-only, kill root Hermes, disable observer | Remove public attack surface |
 | 2026-09-13 | Quartermaster architecture patterns adopted | Friction miner, decision ledger, spatial map |
 | 2026-09-13 | Offload LLM workflows to deterministic code | Deterministic local tooling over token burn |
+| 2026-09-15 | SSH restricted to the tailnet; public 22 removed | 18,474 failed attempts against a world-open 22 with password auth for root — zero intrusions |
+| 2026-09-15 | Hermes Console decommissioned (ports 9119/9131) | Unused; its bridge could write SOUL/memory/skills over HTTP and was bound to 0.0.0.0 |
 
 ---
 

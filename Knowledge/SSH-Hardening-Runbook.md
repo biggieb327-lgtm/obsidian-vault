@@ -25,7 +25,8 @@ longer see the service at all.
 - `fail2ban` — installed, `active` + `enabled`, `sshd` jail on
 - Access path — Termux → `100.81.134.67` with Tailscale connected
 - Fallback — Contabo web console (provider-side, independent of port 22)
-- Every other listener — unchanged, still blocked by ufw
+- Hermes Console — decommissioned the same day: ports `9119`/`9131` removed (§7)
+- Hermes API (`8642`/`8644`) — unchanged, still blocked by ufw
 
 ---
 
@@ -153,8 +154,9 @@ ss -tln | awk '{print $4}' | sort -u
 
 **Full listener inventory (post-change):**
 
-- **Public-bound, all ufw-blocked:** `22` (sshd, now tailnet-only), `8642`/`8644`
-  (Hermes API), `9119` (Hermes dashboard), `9131` (`hermes_bridge.py`)
+- **Public-bound, all ufw-blocked:** `22` (sshd, now tailnet-only),
+  `8642`/`8644` (Hermes API). `9119` (dashboard) and `9131` (console bridge)
+  were **decommissioned** the same day — see §7.
 - **Loopback only:** `8888`, `9999` (Hindsight), `53` (systemd-resolved)
 - **Tailnet only:** `100.81.134.67:45682` (Tailscale's own listener)
 
@@ -188,11 +190,17 @@ exists.
 
 ## 7. Known Remaining Soft Spots
 
-1. **`0.0.0.0` binds.** The dashboard (9119), the bridge (9131), and the Hermes
-   API (8642/8644) are each one ufw misconfiguration away from being public.
-   Rebinding them to `127.0.0.1` — or the tailnet IP — would make them
-   unreachable regardless of the firewall. **Not yet done; needs a decision on
-   how the dashboard is reached.**
+1. **`0.0.0.0` binds.** The Hermes API (`8642`/`8644`) is one ufw
+   misconfiguration away from being public. Rebinding it to `127.0.0.1` — or the
+   tailnet IP — would make it unreachable regardless of the firewall. **Not yet
+   done.**
+
+   The Hermes Console *was* the larger part of this exposure — its bridge could
+   write SOUL/memory/skills over HTTP — and it was **removed** on 2026-09-15
+   rather than rebound, because it was unused. Removed, not merely disabled:
+   unit files, wrapper scripts and `bridge.env` were quarantined to
+   `~/.hermes/backups/console-removed-20260915-052626/`. `health_check.py` now
+   flags a listener on either port as a regression.
 2. **Password auth over the tailnet remains enabled.** Acceptable: only devices on
    the tailnet can reach the port, and the tailnet is this box plus the phone. An
    SSH key in Termux would let it be turned off entirely.
@@ -225,3 +233,7 @@ exists.
   the server side, the client is Termux.
 - **Prove the incident is over by removing the exposure, not by fighting the
   guessing.** `fail2ban` defends; closing the port makes the question moot.
+- **Identify every listener, not just the one you were asked about.** The SSH
+  review surfaced a write-capable HTTP bridge (`hermes_bridge.py` — SOUL,
+  memory and skill writes) bound to `0.0.0.0`, a larger risk than the port under
+  discussion. Ask what each listener *does* before deciding it is fine.
