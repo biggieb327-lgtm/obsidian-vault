@@ -3,7 +3,10 @@
 > **Purpose:** Record how the public SSH surface of this VPS was closed, as a runbook that can be re-executed on a rebuild.
 > **Host:** `vmi3420780` (Contabo) — public `94.72.123.175`, tailnet `100.81.134.67`
 > **Executed:** 2026-09-15 (two phases — see below)
-> **Status:** COMPLETE AND VERIFIED
+> **Status:** COMPLETE AND VERIFIED for the port/password/key hardening. **ONE
+> ITEM STAGED, NOT APPLIED:** owner-scoping of the tailnet rule (I8) — see §5.2
+> and §7.1. The live tailnet rule still trusts the whole tailnet (owner-only in
+> practice: the tailnet holds just the owner's two nodes).
 > **Related:** [[Hermes-Resilience-Playbook]] · [[constraints]] · [[Decisions-Log]]
 
 ---
@@ -33,8 +36,10 @@ turned password auth fully off and installed an SSH key.**
   prohibit-password`); root SSH is **key-only** (`/root/.ssh/authorized_keys`)
 - `fail2ban` — `active` + `enabled`, `sshd` jail; single-IP bans **verified**
   landing in `inet f2b-table addr-set-sshd`
-- `8644` (Hermes webhook API) — **explicitly allowed** through hostfw (the
-  webhook platform needs inbound); `8642` is loopback-only
+- `8644` (Hermes webhook API) — **closed entirely** (2026-09-15: the webhook
+  platform is disabled and has no subscriptions; `8644`/`8642` listen nowhere —
+  `platforms.webhook.enabled: false` in config beats the env override)
+- `8642` (gateway/admin API) — loopback-only, `API_SERVER_KEY`-gated
 - Access path — Termux → `100.81.134.67` with Tailscale (works), plus home
   public IPs over key auth
 - Fallback — Contabo web console (provider-side, independent of port 22)
@@ -158,9 +163,17 @@ log prefix "hostfw-drop: " limit rate 3/second burst 10 packets drop      # logg
 config can never leave the table empty (open) — it refuses to apply.
 **Public-internet exposure is ZERO:** SSH, the 8642 API, and the 8644 webhook are
 all tailnet/loopback-only (2026-09-15: `eth0 8644` removed — the webhook platform
-has no subscriptions, so a public unauth listener was dead risk). Optional
-tailnet-ACL narrowing to the owner's phone (`iifname "tailscale0" ip saddr
-100.113.100.67 accept`) is documented but NOT yet applied — pending t_20321384.
+has no subscriptions, so a public unauth listener was dead risk).
+
+**Owner-scoping of the tailnet rule is STAGED, NOT APPLIED (t_20321384).** The
+live rule is still the whole-tailnet `iifname "tailscale0" accept`: safe only
+because the tailnet happens to contain just the owner's two nodes (see §7.5).
+Scoping it to the owner's device addresses needs a **three-file lockstep** root
+change — `hostfw.nft` plus the hardcoded predicate in
+`firewall-drift-guard.sh` and `hostops` `fw_state()` (otherwise the *more
+restrictive* firewall reports `MISSING-or-drifted` forever and `hostops fw-apply`
+aborts). Staged, reviewed and rehearsed at
+`~/.hermes/evidence/t_20321384/` (`owner-scope-README.md`, `install-i8-owner-scope.sh`).
 
 ### 5.3 Password auth OFF + SSH key installed
 
@@ -209,18 +222,28 @@ sudo fail2ban-client set sshd unbanip 203.0.113.77
 
 ## 7. Current Soft Spots
 
-### 7.1 SSH port 22 — closed to the internet (tailnet-only, owner-scoped) ✅
-Applied per approval. `hostfw.nft` has **no** `eth0 … 22` rule — shell access is
-tailnet-only via `tailscale0`, and **only the owner's phone device(s)** (see
-`hostfw.nft` saddr rules) can reach it. Any other tailnet node gets policy-drop.
-The internet cannot reach 22. Reopen if ever needed: add
+### 7.1 SSH port 22 — closed to the internet (tailnet-only) ✅ / owner-scoping staged ⏳
+`hostfw.nft` has **no** `eth0 … 22` rule — shell access is tailnet-only via
+`tailscale0`, and the internet cannot reach 22 (verified externally:
+check-host.net 2026-09-16, 11/12 nodes *Connection timed out*, 0 reachable).
+**Caveat, previously mis-stated here:** the live rule is the *whole-tailnet*
+`iifname "tailscale0" accept`, so today every tailnet node can reach 22, not only
+the owner's phone. That is owner-only **in practice** (the tailnet holds only the
+owner's two nodes) but not **enforced**. Owner-scoping to
+`100.113.100.67` + `fd7a:115c:a1e0::dd32:6444` is staged, not applied — see §5.2
+and §11. Reopen to the internet if ever needed: add
 `iifname "eth0" tcp dport 22 accept` to `/etc/nftables.d/hostfw.nft` and run
 `sudo host-firewall.sh`.
 
 ### 7.2 `0.0.0.0` binds
-`8644` (webhook) must stay publicly reachable for the webhook platform, so it is
-explicitly allowed — leave it. `8642` is loopback-only. Rebind anything you do
-not want exposed to `127.0.0.1` or the tailnet IP.
+**Fixed 2026-09-15:** `8644` (webhook) is no longer public or listening at all —
+the platform is disabled with zero subscriptions, so the public unauth-capable
+listener was pure attack surface and was closed. `8642` (gateway/admin API) is
+loopback-only and key-gated. If a real HMAC-secret webhook subscription is ever
+added, re-open `eth0` 8644 deliberately (with a *correct* rate limit — the old
+`limit rate 20/second accept` was followed by an unconditional `accept`, so it
+never actually limited). Rebind anything else you do not want exposed to
+`127.0.0.1` or the tailnet IP.
 
 ### 7.3 Docker churn transiently lifts the firewall (~≤20 s)
 Any ephemeral `docker run`/`docker rm` resets all nft tables; the
@@ -232,9 +255,12 @@ The `addr-set-sshd` set lacks `flags interval`, so brute subnet bans error out.
 Single-IP bans (the real attacker case) work and are verified.
 
 ### 7.5 Tailscale is load-bearing for shell access; IPv6 external surface = untested
-Only the owner's phone + box are on the tailnet, and hostfw now scopes tailnet
-access to the phone's v4+v6 tailnet addresses. v6 outbound quantity unverified
-from outside; hostfw allows v6 ICMP/ND and applies the same drop policy.
+Only the owner's phone + box are on the tailnet. hostfw does **not yet** scope
+tailnet access — the live rule is `iifname "tailscale0" accept`, i.e. any tailnet
+node, which is owner-only in practice today but not enforced. Owner-scoping to
+the phone's v4+v6 tailnet addresses is staged (t_20321384), not applied. v6
+outbound quantity unverified from outside; hostfw allows v6 ICMP/ND and applies
+the same drop policy.
 
 ---
 
@@ -308,14 +334,23 @@ is not total loss:
 3. **If Tailscale itself is down:** re-run `sudo tailscale up` on the box and
    reopen the app on the phone (see §8 Rollback).
 
-### Tailscale ACL (control-plane) — defense in depth
+### Tailscale ACL (control-plane) — defense in depth — NOT APPLIED
 
-The firewall enforces SSH/admin at the network layer (only the owner's phone
-tailnet address passes), which is the strong, always-on control. The Tailscale
-**admin-console ACL** (HuJSON) is a separate, weaker-in-depth layer that cannot be
-edited from this VPS (no API key; CLI cannot write ACLs). If desired, apply this
-in the Tailscale admin console → Access Controls so SSH is additionally gated by
-tailnet policy (not just the firewall):
+**Status 2026-09-16: not applied, and it cannot be applied from this VPS.** There
+is no Tailscale API key on the box, the CLI cannot write ACLs, and the tailnet is
+not managed by an agent-accessible surface — so this is a sovereign step in the
+admin console. Do not believe §7.1's old claim that the firewall already scopes
+by owner: it does not (see §5.2, §7.5). What is true today:
+
+* the **host** firewall blocks all public-internet access to 22 and every admin
+  port (verified externally — §7.1);
+* the tailnet rule is **whole-tailnet**, so any node that joins the tailnet can
+  reach 22 unless the ACL below (or the staged host-side scoping) is in place.
+
+The ACL is the **identity-based** control and is strictly better than the staged
+IP scoping because it survives a node re-registration changing its `100.x`
+address. Apply this in the Tailscale admin console → Access Controls to gate SSH
+by tailnet policy rather than by the host firewall alone:
 
 ```json
 {
