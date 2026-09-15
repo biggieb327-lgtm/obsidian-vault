@@ -53,7 +53,7 @@
 
 The root actions parked on the Sovereign are surfaced by one renderer, `scripts/sovereign_section.py` (which consumes `scripts/pending_root_actions.py` and never re-derives the scan). It is wired into:
 
-- **Daily Cabinet Briefing** (`ba6623dfa30c`, 08:00) -- the script is attached to the job, so its stdout is injected into the prompt pre-run; the prompt requires it verbatim as section 0, ahead of the Executive Summary.
+- **Daily Cabinet Briefing** (`ba6623dfa30c`, 08:00) -- prompt item 0: the briefing must run the renderer and paste its stdout verbatim as section 0, ahead of the Executive Summary. Deliberately NOT attached as the job's pre-run `script`: an empty pre-run script makes the cron runner skip the agent call entirely, which would silently delete the briefing on a quiet-queue day.
 - **Daily Standup** (`21c1789ecec3`, 09:00 Mon-Fri) -- prompt item 5, run as `sovereign_section.py --format plain`, quoted first.
 - **Daily Digest** (deterministic HTML at `cache/daily_digest.html`) -- rendered mechanically above the routine briefings. A pending queue, a degraded scan, or an unreadable board now forces the Matrix summary line even on an otherwise quiet day, so a parked root action is never silenced.
 
