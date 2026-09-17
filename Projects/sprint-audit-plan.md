@@ -59,7 +59,15 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
     (self-documented); the "guard/approval" framing oversells it.
   - **Verified SAFE:** `.env` mode 600 + untracked (CC's uncertainty was a bundle-scope artifact);
     redacted bundle leak-scan clean.
-- **Status:** Pending remediation decision (F1/F4 are posture changes → Sovereign sign-off).
+- **Status:** Pending remediation decision (F1/F4 are posture changes — Sovereign sign-off).
+- **Remediated (2026-09-17, Sovereign-approved):** F1 — `hermes plugins enable sovereign-guard`
+  (enabled; interceptor unit-verified 9/9; live on next plugin load / gateway restart);
+  F3 — `approvals.destructive_slash_confirm: true`; F4 — `command_allowlist: []`; F5 — new
+  mechanism `guard-plugins-enabled` (`scripts/check_guards_enabled.py`, invariant: both guards
+  in `plugins.enabled`; registry now 28 mechs / 0 failures); F7 — sovereign-guard docstring
+  corrected (systemctl/ufw/iptables are NOT matched → hostops allowlist); F2 — AGENTS.md
+  §2/§12 wording aligned. F6 accepted as documented (detection ≠ gate). Backup
+  `pre-change-20260917-075213`. **IG pass pending.**
 
 ## Sprint 2 — Cabinet Profiles
 - **Scope:** `profiles/{default,orchestrator,implementer,researcher,writer,treasury,reviewer}/`
@@ -176,7 +184,7 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 ## Sprint Status Board
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
 |---|---|---|---|---|
-| 1 Governance & Config | **GAPS (verified)** | Tier 1 guard not loaded; backup/confirm disabled; registry plugin blind spot | Pending remediation decision |
+| 1 Governance & Config | **GAPS (verified)** | Tier 1 guard not loaded; backup/confirm disabled; registry plugin blind spot | ✅ Remediated (F1,F3,F4,F5,F7); IG pending |
 | 2 Cabinet Profiles | | | | |
 | 3 Cron & Delivery | **GAPS (verified)** | Staleness=whole-file mtime; digest masks failures as "silent"; disabled landmine; origin-null job | ✅ Remediated (F1+F2+F3); IG PASS (`deleg_7bf66103`) |
 | 4 Mechanisms & Witnesses | | | | |
