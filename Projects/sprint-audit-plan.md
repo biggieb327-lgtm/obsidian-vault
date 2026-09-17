@@ -123,7 +123,9 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 - New `scripts/check_hindsight.py` — the missing layer-2 witness (verified it fails on a dead port).
 - New `scripts/test_memory_curator.py` — regression witness (fails if the split/cap regress).
 - `config/mechanisms.yaml` +2 mechanisms → 27 verified, 0 failures; full health check ALL PASSED.
-- Tier-2 IG audit: `deleg_106e7ef1`.
+- Tier-2 IG round 1 (`deleg_106e7ef1`): **FAIL** — found `max_chars()` read the cap from a **top-level** config key while the real cap is **nested** (`memory.memory_char_limit`); the hardcoded fallback (2200) coincided with the live value and hid it, and the witness couldn't detect it. Dedup archive under-recorded. **Fixed**: `max_chars()` reads the nested key; witness rewritten to prove the read with a *distinct* injected value and to fail on the regression; dedup archive corrected; 3 copies re-synced (`a6324eef`). Re-audit `deleg_60b7807e`.
+- **Lesson (recorded in `regression-witnesses`):** a fallback default equal to the live value masks a broken config read — prove a config read by injecting a *distinct* value, never by asserting the current one.
+- Tier-2 IG round 2 (`deleg_60b7807e`): **PASS** — all 7 criteria verified by execution (nested-cap inject, negative mutation, dedup archive, 3-copy hash, audit+health), no remaining defects. **Sprint 6 closed.**
 
 ## Sprint Status Board
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
@@ -133,6 +135,6 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 | 3 Cron & Delivery | | | | |
 | 4 Mechanisms & Witnesses | | | | |
 | 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
-| 6 Memory & Knowledge | **GAPS (verified)** | Curator silent no-op; MEMORY.md over cap; no Hindsight witness | Hygiene + mechanism fixes applied; IG `deleg_106e7ef1` |
+| 6 Memory & Knowledge | **GAPS (verified)** | Curator silent no-op; MEMORY.md over cap; no Hindsight witness | ✅ Remediated; IG PASS (`deleg_60b7807e`) |
 | 7 Kanban & Dispatch | | | | |
 | 8 Token Economy | | | | |
