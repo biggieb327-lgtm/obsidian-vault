@@ -152,7 +152,7 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 |---|---|---|---|---|
 | 1 Governance & Config | | | | |
 | 2 Cabinet Profiles | | | | |
-| 3 Cron & Delivery | **GAPS (verified)** | Staleness=whole-file mtime; digest masks failures as "silent"; disabled landmine; origin-null job | ✅ Remediated (F1+F2+F3); IG `deleg_8f3f1b2e` |
+| 3 Cron & Delivery | **GAPS (verified)** | Staleness=whole-file mtime; digest masks failures as "silent"; disabled landmine; origin-null job | ✅ Remediated (F1+F2+F3); IG PASS (`deleg_7bf66103`) |
 | 4 Mechanisms & Witnesses | | | | |
 | 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
 | 6 Memory & Knowledge | **GAPS (verified)** | Curator silent no-op; MEMORY.md over cap; no Hindsight witness | ✅ Remediated; IG PASS (`deleg_60b7807e`) |
