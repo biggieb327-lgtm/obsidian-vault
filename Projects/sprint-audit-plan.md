@@ -92,6 +92,18 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 
 ---
 
+## Sprint 5 result (2026-09-17)
+**CC verdict: GAPS.** Verified disposition (CC output is a finding, not a fact):
+- **Drill `before=1` degenerate-pass — CONFIRMED (highest-value finding).** `f2b-ban-drill.sh` lines 113-129: if the test address is already in the set before the drill, `ok_after_ban` is trivially true and `ok_after_unban` is satisfied by the element *still being present* after `unbanip` — i.e. a completely broken unban also yields pass. A stale residue (prior failed unban) makes every later run report `pass` without testing ban or unban. **Fix pending (root-owned file → staged root action).**
+- **`uid:0` self-audit — REAL but not systemic.** 35/37 evidence files are `uid=1000` (hermes, per design docstring); the two `uid=0` runs are manual Sovereign checks from SSH. Standing hardening: the audit should *flag* a root run (can't claim unprivileged independence). Optional.
+- **`sshd-kbd` — DISMISSED (audit-bundle gap).** `KbdInteractiveAuthentication no` IS set (sshd_config:71); CC couldn't see it because the scope bundle's grep filtered out the `kbd` keyword. P2:0 was legitimate.
+- **`firewall-drift-guard` "stuck activating" — DISMISSED.** Normal oneshot-timer pattern (unit `inactive`, timer `active`).
+- **Lower-priority limitations (not yet acted):** `check_secrets()` scans only 2 hardcoded paths; `check_deamplification()` docker-group check can silently no-op for system/stopped units; `jail.local` `ignoreip` hardcodes a home/office public IPv4 (PII if bundle shared); `hostops unit-*` wildcards unbounded; `docker-ufw-guard.service` absent from `FINGERPRINT_FILES`; `check_fail2ban()` log window resets on config mtime touch.
+
+## Sprint audit protocol — lessons
+- **Verify CC findings against ground truth before acting.** CC inferred a false `sshd-kbd` P2 from a scope bundle whose grep had *filtered out* the `kbd` keyword. A filtered/incomplete bundle manufactures false alarms. Include the full config or state the exact filter.
+- **Check whether a "green" CC is over-claiming** (drill `before=1`) *and* whether a "red" CC is under-claiming (bundle gap) — both directions.
+
 ## Sprint Status Board
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
 |---|---|---|---|---|
@@ -99,7 +111,7 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 | 2 Cabinet Profiles | | | | |
 | 3 Cron & Delivery | | | | |
 | 4 Mechanisms & Witnesses | | | | |
-| 5 Security Posture | | | | |
+| 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
 | 6 Memory & Knowledge | | | | |
 | 7 Kanban & Dispatch | | | | |
 | 8 Token Economy | | | | |
