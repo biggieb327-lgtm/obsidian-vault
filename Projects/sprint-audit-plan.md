@@ -77,6 +77,25 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 - **Audit focus:** Per-profile config sane and role-tool aligned? Any **drift** between
   canonical (`skills/`, `scripts/`) and per-profile copies? Dead/mis-pathed scripts?
 - **Acceptance (PASS):** no unexplained copy drift; every profile's role maps to its tools.
+- **Result (2026-09-17): GAPS (CC-audited + verified).** 16 CC findings → 7 real, 2 false, rest minor.
+  - **F1/F2/F10 [CRITICAL] Treasury = wholesale root-config copy** (32/33 keys shared): carried
+    `dashboard.basic_auth` (real creds), the 4 dangerous `command_allowlist` entries, full
+    `custom_providers`, and the default profile's Matrix home_channel + a webhook secret. Stripped
+    to minimal finance-scoped config (dashboard/command_allowlist/platforms/custom_providers
+    removed); removed 16 infra/devops skill packs (kept note-taking/productivity/research).
+  - **F8 [CRITICAL] Writer missing mandated skills** — added obsidian-markdown/obsidian-bases/
+    json-canvas (grounded-citations + notion were already present under research/productivity).
+  - **F9 [HIGH] Researcher memory non-functional** — added hindsight + note-taking/obsidian;
+    initialized memories/.
+  - **F3 [MED] stale reasoning_overrides stepfun** in implementer/reviewer — removed.
+  - **F4 [LOW] mirror-sync unwitnessed** — added `skill-mirror-sync` mechanism (file_fresh on
+    cron/output/05ba9f1d1951/*); registry now 29/0.
+  - **F16 [LOW] writer/memories empty** — initialized.
+  - **FALSE (not remediated):** F5 (vps_security_audit.py is a referenced self-checking mirror in
+    reviewer's vps-security-controls skill — IG security audit is in-scope); F14 (no webhook key in
+    implementer); F15 (_config_version = redaction artifact); F11's "grounded-citations absent from
+    canonical" (it's at skills/research/grounded-citations).
+  - Backup `pre-change-20260917-084658`. **IG pending.**
 
 ## Sprint 3 — Cron Schedule & Delivery
 - **Scope:** `cron/jobs.json` (39 jobs), `scripts/cron_digest.py`, `scripts/daily_digest.py`,
@@ -187,7 +206,7 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
 |---|---|---|---|---|
 | 1 Governance & Config | **GAPS (verified)** | Tier 1 guard not loaded; backup/confirm disabled; registry plugin blind spot | ✅ Remediated (F1,F3,F4,F5,F7); IG PASS (`deleg_722b07b8`) |
-| 2 Cabinet Profiles | | | | |
+| 2 Cabinet Profiles | **GAPS (verified)** | Treasury=root-config copy w/ secrets; writer/researcher missing mandated skills; stale reasoning_overrides; mirror-sync unwitnessed | ✅ Remediated (F1-F4,F8,F9,F16); IG pending |
 | 3 Cron & Delivery | **GAPS (verified)** | Staleness=whole-file mtime; digest masks failures as "silent"; disabled landmine; origin-null job | ✅ Remediated (F1+F2+F3); IG PASS (`deleg_7bf66103`) |
 | 4 Mechanisms & Witnesses | | | | |
 | 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
