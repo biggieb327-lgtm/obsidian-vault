@@ -95,7 +95,9 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
     reviewer's vps-security-controls skill — IG security audit is in-scope); F14 (no webhook key in
     implementer); F15 (_config_version = redaction artifact); F11's "grounded-citations absent from
     canonical" (it's at skills/research/grounded-citations).
-  - Backup `pre-change-20260917-084658`. **IG pending.**
+  - Backup `pre-change-20260917-084658`. **IG round 1 `deleg_99555617` PASS. Sprint 2 CLOSED.**
+    - Follow-up (IG-flagged, deferred): writer/researcher still hold autonomous-ai-agents/devops/media/
+      social-media/software-development packs — trim if strict role-scoping wanted.
 
 ## Sprint 3 — Cron Schedule & Delivery
 - **Scope:** `cron/jobs.json` (39 jobs), `scripts/cron_digest.py`, `scripts/daily_digest.py`,
@@ -206,7 +208,7 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
 |---|---|---|---|---|
 | 1 Governance & Config | **GAPS (verified)** | Tier 1 guard not loaded; backup/confirm disabled; registry plugin blind spot | ✅ Remediated (F1,F3,F4,F5,F7); IG PASS (`deleg_722b07b8`) |
-| 2 Cabinet Profiles | **GAPS (verified)** | Treasury=root-config copy w/ secrets; writer/researcher missing mandated skills; stale reasoning_overrides; mirror-sync unwitnessed | ✅ Remediated (F1-F4,F8,F9,F16); IG pending |
+| 2 Cabinet Profiles | **GAPS (verified)** | Treasury=root-config copy w/ secrets; writer/researcher missing mandated skills; stale reasoning_overrides; mirror-sync unwitnessed | ✅ Remediated (F1-F4,F8,F9,F16); IG PASS (`deleg_99555617`) |
 | 3 Cron & Delivery | **GAPS (verified)** | Staleness=whole-file mtime; digest masks failures as "silent"; disabled landmine; origin-null job | ✅ Remediated (F1+F2+F3); IG PASS (`deleg_7bf66103`) |
 | 4 Mechanisms & Witnesses | | | | |
 | 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
