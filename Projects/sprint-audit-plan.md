@@ -124,7 +124,7 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
     /run/hermes-ops/f2b-ban-drill.json). Registry now 31.
   - **F3 [LOW] task-producer self-test framing** — by-design: a non-empty candidate list is the
     producer's normal job, so a self-test is the honest liveness witness. Not remediated.
-  - mechanism_audit 31/0/0; health ALL 11 PASSED. **IG pending.**
+  - mechanism_audit 31/0/0; health ALL 11 PASSED. **IG round 1 `deleg_e46e9acf` PASS. Sprint 4 CLOSED.**
 
 ## Sprint 5 — Security Posture
 - **Scope:** firewall (hostfw via `hostops fw-status`), fail2ban + fire-drill,
@@ -222,7 +222,7 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 | 1 Governance & Config | **GAPS (verified)** | Tier 1 guard not loaded; backup/confirm disabled; registry plugin blind spot | ✅ Remediated (F1,F3,F4,F5,F7); IG PASS (`deleg_722b07b8`) |
 | 2 Cabinet Profiles | **GAPS (verified)** | Treasury=root-config copy w/ secrets; writer/researcher missing mandated skills; stale reasoning_overrides; mirror-sync unwitnessed | ✅ Remediated (F1-F4,F8,F9,F16); IG PASS (`deleg_99555617`) |
 | 3 Cron & Delivery | **GAPS (verified)** | Staleness=whole-file mtime; digest masks failures as "silent"; disabled landmine; origin-null job | ✅ Remediated (F1+F2+F3); IG PASS (`deleg_7bf66103`) |
-| 4 Mechanisms & Witnesses | **GAPS (verified)** | check_script_drift dead-coded; security-reaudit on-change+ban-drill unwitnessed | ✅ Remediated (F1,F2); IG pending |
+| 4 Mechanisms & Witnesses | **GAPS (verified)** | check_script_drift dead-coded; security-reaudit on-change+ban-drill unwitnessed | ✅ Remediated (F1,F2); IG PASS (`deleg_e46e9acf`) |
 | 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
 | 6 Memory & Knowledge | **GAPS (verified)** | Curator silent no-op; MEMORY.md over cap; no Hindsight witness | ✅ Remediated; IG PASS (`deleg_60b7807e`) |
 | 7 Kanban & Dispatch | | | | |
