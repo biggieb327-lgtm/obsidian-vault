@@ -216,6 +216,64 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 - Q3 “`check_cron_output` is not wired into any schedule → not an active witness”: **FALSE**. It is mechanism `cron-output` (`config/mechanisms.yaml`), and its `invariant` command is executed by `mechanism_audit.py:382-394` inside the 6-hourly health check. The derived “8 local jobs have no witness” is overstated — the aggregate covers all 48.
 - CC’s bundle covered only the **default** profile, so it could not see the orchestrator landmine.
 
+## Sprint 7 result (2026-09-17)
+**CC verdict: GAPS.** Verified disposition (CC output is a finding, not a fact):
+- **F2 [HIGH] — kanban audit scripts cannot fail — CONFIRMED + FIXED.** Neither
+  `scripts/kanban_audit.py` nor `kanban_audit2.py` had any `sys.exit`/`assert`/`raise`;
+  both were unconditional reporters that always exited 0, so "no orphaned tasks" could never
+  gate anything. `kanban_audit.py` now exits 1 on: a done task without a retrospective, a
+  `task_runs` row stuck in `running` (no `ended_at`), or an expired claim. Proven
+  failing-able on a scratch DB copy (injected stalled run → exit 1; injected expired claim →
+  exit 1; clean → exit 0). The expired-claim compare required `time.time()` — not
+  `datetime.utcnow().timestamp()`, which reads the naive UTC as local CEST and is 2h behind
+  the real epoch, so the check would never have fired.
+- **F3 [MED] — `sprint-audit` codename unregistered — CONFIRMED + FIXED.** `t_f8e14081`
+  carries a `[sprint-audit]` prefix but `CODENAMES.md` listed only `root-hardening`; row added.
+- **F1 [MED] — `reviewer=` route unexercised — CONFIRMED but NOT a defect.** Zero task
+  comments have ever passed `reviewer=`; review work is done by *direct assignment* to the
+  `reviewer` profile (18 done tasks) — the explicit routing the acceptance asks for. CC
+  mischaracterised `kanban.review_dispatch: true` as a no-op: per AGENTS.md §12 it spawns the
+  *assigned* profile with the bundled `sdlc-review` skill; it is not the `reviewer=` route.
+- **F4 [LOW] — "two gateways" — FALSE.** The two processes are the implementer dispatcher
+  (PID 155570) and the *default* gateway, which is the session host; both expected.
+- **F5 — resolved, not a violation.** The root-hardening-themed blocked cards predate the
+  codename's creation (today); the convention is forward-only, so they are grandfathered.
+- Ground truth established before CC launch: dispatcher lock live; single-owner
+  `dispatch_in_gateway` held (implementer true, default/others false); DB `integrity_check` +
+  `fk_check` clean; 0 stale claims; 0 stalled runs; 68 done / 0 missing retrospectives; 9
+  blocked all with staged evidence.
+
+## Sprint 8 result (2026-09-17)
+**CC verdict: GAPS.** Verified disposition (CC output is a finding, not a fact):
+- **F1 [HIGH] — `token_economy.py --check` ignored the baseline — CONFIRMED + FIXED.** The
+  `problems` list was built only from hardcoded thresholds (`MIN_CACHE_HIT 0.80`,
+  `MAX_COST_PER_CALL 0.0020`); the baseline was loaded but used only in human-print mode, so a
+  2.4x cost/call drift passed silently. Added baseline-relative checks: fail if recent
+  cost/call > `BASE_COST_MULT` (1.5x) baseline, or cache-hit < baseline − `BASE_CACHE_DROP`
+  (5pt). The baseline was then recalibrated to the current post-cost-control known-good state
+  (the 2026-09-13 baseline predated the compression change and enshrined a stale number).
+- **F2 [HIGH] — `background_review` silently inherited the main model — CONFIRMED + FIXED.**
+  `auxiliary.background_review` had `enabled`/`max_input_tokens` but no `provider`/`model`, so
+  it followed `model.default` — the exact mechanism that once made one aux task 17% of spend.
+  Now pinned to `deepseek/deepseek-v4-flash-0731`.
+- **F3 [HIGH] — `_window()` excluded aux tasks — CONFIRMED + FIXED.** The check filtered to the
+  main loop (`coalesce(task,'')=''`), so aux spend was invisible. Added `_aux_scan()`: always
+  prints per-aux-task spend and flags any aux task above 20% of window spend.
+- **F4 [HIGH] — model filter hid retired-model spend — CONFIRMED + FIXED.** Scoping to
+  `model.default` made the retired gemini spend invisible. Added `_model_scan()`: flags
+  non-default-model spend in the **recent 24h** window (not all-time, so retired-model history
+  does not false-flag current health — verified: all-time flagged gemini/o3/qwen; 24h none).
+- **F5 [MED] — compression cost/call above threshold, unmonitored — MITIGATED.** Compression is
+  a behaviour, not an aux task; it legitimately handles large contexts, so judging it against
+  the main-loop ceiling would be a false positive. It is now *visible* in the aux table.
+- **F6 [LOW] — approval/title_generation nonzero cost despite free pin — INDETERMINATE.**
+  Residual billing noise on free-tier calls; not acted.
+- **F7 [LOW] — stale decision-ledger label — CONFIRMED + FIXED.** Label read
+  "reasoning_effort=low"; `agent.reasoning_effort` is unset (correctly — the ladder is inverted
+  on this route). Label corrected.
+- Config confirmed against measurement: `model.default deepseek/deepseek-v4-flash-0731`/nous;
+  `agent.reasoning_effort` UNSET; `reasoning_overrides` only a stale local `llama3.2:3b` entry.
+
 ## Sprint Status Board
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
 |---|---|---|---|---|
@@ -225,5 +283,5 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 | 4 Mechanisms & Witnesses | **GAPS (verified)** | check_script_drift dead-coded; security-reaudit on-change+ban-drill unwitnessed | ✅ Remediated (F1,F2); IG PASS (`deleg_e46e9acf`) |
 | 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
 | 6 Memory & Knowledge | **GAPS (verified)** | Curator silent no-op; MEMORY.md over cap; no Hindsight witness | ✅ Remediated; IG PASS (`deleg_60b7807e`) |
-| 7 Kanban & Dispatch | | | | |
-| 8 Token Economy | | | | |
+| 7 Kanban & Dispatch | **GAPS (verified)** | Audit scripts can't fail; `reviewer=` route unexercised; `sprint-audit` codename unregistered | ✅ Remediated (F2,F3); IG pending |
+| 8 Token Economy | **GAPS (verified)** | `--check` ignores baseline; background_review unpinned; aux/legacy spend invisible | ✅ Remediated (F1-F4,F7); IG pending |
