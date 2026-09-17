@@ -104,6 +104,27 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 - **Verify CC findings against ground truth before acting.** CC inferred a false `sshd-kbd` P2 from a scope bundle whose grep had *filtered out* the `kbd` keyword. A filtered/incomplete bundle manufactures false alarms. Include the full config or state the exact filter.
 - **Check whether a "green" CC is over-claiming** (drill `before=1`) *and* whether a "red" CC is under-claiming (bundle gap) — both directions.
 
+## Sprint 6 result (2026-09-17)
+**CC verdict: GAPS.** Verified disposition (CC output is a finding, not a fact):
+- **`memory_curator.py` silent no-op on MEMORY.md — CONFIRMED.** `curate()` splits on `\n## ` (line 108); MEMORY.md has 0 `## ` headers and 11 `§` separators, so the split yields one section and the dedup/consolidate loop iterates nothing. The auto-curator never curates.
+- **Curator thresholds miscalibrated — CONFIRMED.** `MAX_CHARS=4000`/`MAX_ENTRIES=15` (lines 8-9,27-28) vs the real enforced cap `memory_char_limit: 2200`; MEMORY.md is already 2208 bytes — over cap, under the curator's trigger.
+- **Layer 2 (Hindsight) has no witness — CONFIRMED.** The 6h health check (`skills/bulletproof-hermes/scripts/health_check.py`) never probes Hindsight/`:8888`. MEMORY.md itself notes Hindsight writes still 500.
+- **`vault_hygiene.py` + `session_audit.sh` cannot fail on findings — CONFIRMED.** `main()` returns 0 even with broken links/orphans (line 300; only a missing vault returns 1); `session_audit.sh` ends `exit 0` (line 33). Both are reporters, not gates.
+- **`save_memory()` plain `open("w")` overwrite, no lock/backup — CONFIRMED** (line 150); the `.lock` files present are not read by this writer.
+- **Layer 3 doc/impl drift — CONFIRMED (CC inverted it).** CC said "no code path"; `scripts/search_memory.py` exists but implements **Qdrant + fastembed**, while USER.md describes **Ollama+NumPy+JSONL+FTS5** — and AGENTS.md §4 deprecates Qdrant. Doc and code contradict each other.
+- **Unowned cruft:** `MEMORY.md.bak.*`, `*.lock`, stale `Knowledge/AGENTS.md` duplicate (30KB, Sep 14) — no mechanism owns them.
+- **Dismissed:** CC's "layer 3 not wired" as an *absence* claim — a bundle-scope artifact (2nd occurrence; always verify CC against ground truth).
+
+### Sprint 6 remediation (2026-09-17)
+**Phase A — quick hygiene (done):** MEMORY.md trimmed to 2170/2200 and the false "Hindsight: Docker" fact corrected (native process); stale `.bak` archived + stale 0-byte `.lock` removed; vault `Knowledge/AGENTS.md` refreshed from canonical (was materially stale; 9 wikilinks preserved); guard baseline re-accepted.
+
+**Phase B — mechanism fixes (done, IG pending):**
+- `memory_curator.py` rewritten: splits on the real `§` delimiter, reads `memory_char_limit` from config (was hardcoded 4000), preserves the `§` format on consolidation, backs up before overwrite. Synced to all 3 copies (`scripts/`, `skills/memory-curator/`, `profiles/treasury/skills/memory-curator/`), byte-identical `fdac198c`.
+- New `scripts/check_hindsight.py` — the missing layer-2 witness (verified it fails on a dead port).
+- New `scripts/test_memory_curator.py` — regression witness (fails if the split/cap regress).
+- `config/mechanisms.yaml` +2 mechanisms → 27 verified, 0 failures; full health check ALL PASSED.
+- Tier-2 IG audit: `deleg_106e7ef1`.
+
 ## Sprint Status Board
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
 |---|---|---|---|---|
@@ -112,6 +133,6 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 | 3 Cron & Delivery | | | | |
 | 4 Mechanisms & Witnesses | | | | |
 | 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
-| 6 Memory & Knowledge | | | | |
+| 6 Memory & Knowledge | **GAPS (verified)** | Curator silent no-op; MEMORY.md over cap; no Hindsight witness | Hygiene + mechanism fixes applied; IG `deleg_106e7ef1` |
 | 7 Kanban & Dispatch | | | | |
 | 8 Token Economy | | | | |

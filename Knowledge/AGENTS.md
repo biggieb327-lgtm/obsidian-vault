@@ -225,8 +225,13 @@ It contains an offline SQLite FTS5 database (`hermes_rag.sqlite`) indexing **674
 | **Nightly Dreaming** | 0 3 * * * | Extract action items, decisions, and project context from today's logs; run Hindsight reflect on findings; save to Obsidian daily note. |
 | **2am Micro-App Session (DoS)** | 0 2 * * * | Scan past 7 days of logs for repetitive tasks, wishes, and "wouldn't it be nice if…" signals; build one small tool (CLI script, HTML dashboard, or automation) saved to `~/.hermes/workspace/micro-apps/<date>/`. |
 | **Vault Hygiene Audit** | Sun 04:00 | Scan Obsidian vault for unfiled root notes, broken wikilinks, and orphaned pages via `vault_hygiene.py`. |
-| **Infrastructure Watchdog** | Every 30m | Monitor open ports, service endpoints, and URLs via `watchdog.py`; alert to Matrix only on diff. |
+| **Infrastructure Watchdog** | Every 30m | `watchdog.py` (job `4a9f95176f8a`, deliver `origin`) watches listening ports, failed user services, the two gateway units, Hindsight `/health`, and root disk (alert at 85%); alerts to Matrix on any change, silent when unchanged via the `wakeAgent=false` gate. |
 | **Retrospective Backfill** | Every 30m | Deterministic, 0-token capture of a retrospective for every completed Kanban task lacking one, via `retrospective_backfill.py --quiet`. Writes to `memories/retrospectives.md` and posts a task comment. Silent when idle. |
+| **Context Cost Re-Measure** | 08:45 daily | Deterministic 0-token measure of per-call context after the 2026-09-14 cost-control change (`compression.threshold` 0.5→0.15, `session_reset` none→idle), split by `first_seen`; verdict against the 132,726 tokens/call baseline. Job `72169fcc896e`. |
+| **Daily Digest (consolidation)** | 09:30 daily | `daily_digest.py` (job `5f187dff7855`, no_agent) renders the routine briefings into ONE HTML page (`cache/daily_digest.html`) and posts a single Matrix line. The 14 routine briefing jobs deliver `local` and roll up here instead of pinging individually. |
+| **Dashboard Refresh** | 09:25 daily | `dashboard.py` (job `48e58a39b2e8`, no_agent) regenerates the cost+health dashboard (`cache/dashboard.html`) just before the digest, which links it. |
+
+> **Delivery model (2026-09-15).** Routine briefings (DoD 07:00, Treasury 07:30, Cabinet 08:00, Standup 09:00, PR review 12:00, Task Producer, self-improvement, dreaming, micro-app, subreddit, kanban audit, retrospective roll-up, context cost, weekly review) now deliver `local` and are consolidated into the **09:30 daily digest**. Only real-time ALERTS keep immediate Matrix delivery: the health check (`e490b859eacc`) and the infra watchdog (`4a9f95176f8a`, `deliver: origin` — alerts on a listening-port diff and stays silent when unchanged via the `wakeAgent=false` gate). The old 2-hourly `cron_digest.py` job (`d77a845c7e13`) is paused; its mechanism witness was repointed to the daily-digest job in the same change. **Remaining gap:** a few other `deliver: local` jobs (memory hygiene, cost optimization, vault auto-push) are delivered nowhere — the digest footer lists them explicitly instead of claiming they are delivered.
 
 ---
 
@@ -288,7 +293,7 @@ The auditor enforces three distinct things:
    - `invariant` — a command exits 0, asserting a property of the world.
    - `null` — explicitly acknowledged as unproven (reported, not hidden).
 
-**All 9 registered mechanisms now carry a real witness; none is `null`.**
+**All 21 registered mechanisms now carry a real witness; none is `null`.**
 
 **Adding a mechanism:** give it a witness. An entry without one is a declaration,
 not a guarantee, and the report says so out loud.
@@ -391,8 +396,44 @@ until you set one.
 - Nous pricing is **flat** — there is no peak/off-peak dimension to schedule around.
 - `/thinkon` does not exist in v0.21.0; use `/reasoning`.
 - `incontext` needs a vLLM `/tokenize` endpoint we do not have.
-- Tightening `compression.threshold` is **anti-cache**: a cache hit costs 1/32 of a
-  miss, so rewriting history to shrink a cached context can cost more than it saves.
+- **Tightening `compression.threshold` is the lever, not an anti-cache risk —
+  measured 2026-09-14.** The "1/32" is the *published* cache-read rate; the
+  Portal's billing does not honour it. 30-day reconciliation: $60.34 billed for
+  7.9K requests carrying ~132k input-side tokens each, which is ~$36 at published
+  rates — ~1.7x. Free-model tokens were confirmed absent from the spend graph, so
+  the factor is cache read priced near the full input rate, not $1.1e-3/M. Cost
+  therefore tracks **context size x request count**; the old anti-cache reading
+  assumed a discount this account does not get. Token windows matched the Portal
+  exactly (output 4,098,745 vs 4.1M), so it is rate, not window drift. Caveat: one
+  account, no per-model cost view — 1.7x is an observed ratio, not a price list.
+
+---
+
+### 10.8 Coding Engine Division of Labor (validated 2026-09-16)
+
+Claude Code rides an existing Anthropic subscription (OAuth
+`CLAUDE_CODE_OAUTH_TOKEN`), so its per-token cost is **$0 within plan rate
+limits** — cheaper than any paid route. Route coding work by role, not habit:
+
+| Role | Engine | Why |
+|---|---|---|
+| **Plan** | Claude Code (`claude -p ... --max-turns 3`) | Strongest reasoner; clean structured implementation plans |
+| **Audit** | Claude Code (`claude -p ... --max-turns 2`) | Review strength is genuinely high — catches real defects |
+| **Build** | `deepseek/deepseek-v4-flash-0731` (Nous, ~$0.0003/call) | Cheap + reliable for executing a plan |
+| **Grunt** | `meituan/longcat-2.0:free` (Nous) | $0; verified alive (3.9s, no 429 as of 2026-09-16) for title/approval/summarize-type tasks |
+
+**Routing rule (cheapest to strongest):** free model → cheap paid → Claude Code.
+But never route *planning or auditing* to a small/free model — their reasoning is
+not up to the judgment work; that is the whole point of the split.
+
+**Verified invocations** live in the `claude-code` skill (§ Plan/Build/Audit
+Division of Labor). Audit caveat: large diffs need a 300s+ terminal timeout or
+slicing; `--max-turns 2` on a big diff can blow a 180s default.
+
+**Known-free-model status (2026-09-16):** `meituan/longcat-2.0:free` works
+live; `nex-agi/nex-n2.5-mini:free` 404s (removed from `model_aliases`). Re-verify
+before relying on any `:free` model — the historical 429 reliability warning for
+Nous free tiers is now partial, not universal.
 
 ---
 
@@ -561,3 +602,30 @@ Instructions and skills should be *lean and contextual*, not exhaustive:
   earn its tokens every load.
 - **Reserve "ask first" for what is genuinely destructive/irreversible** (Tier 1).
   Otherwise bias toward action and carry the task to completion.
+
+---
+
+## 15. Workstream Codenames (recall handles)
+
+Concurrent long-running work needs a handle a human can recall. Ours were hashes —
+`deleg_62486c2b`, `e490b859eacc`, `t_8e024529` — so "which thread was that?" cost a lookup
+every time. A codename fixes **recall**; boards fix **collisions**.
+
+- **Registry:** `~/.hermes/kanban/CODENAMES.md` (inside `kanban_home()/kanban`, so there is one
+  copy — profile-independent by design). One row per workstream, nothing else:
+  `<codename> | <created> | <status> | <board>`.
+- **Carry:** create tasks as
+  `hermes kanban create "[<codename>] <description>" --assignee <profile>`.
+  Titles are effectively **creation-only**: `kanban edit` has no `--title`, and the one retitle
+  path (`hermes kanban specify`) is triage-status only. So the convention is **forward-only** —
+  tasks predating it keep their titles. Never hand-edit the board DB.
+- **Promote to a board** (slug **equal** to the codename — never keep a mapping between them)
+  when two codenames each hold `todo`/`running` work at the same time. Detection point: the
+  Congressional standup (Mon–Fri 09:00, orchestrator) already audits the backlog. Never create a
+  board speculatively — a task is pinned to its creation board.
+- **Not a mechanism, and it must not pretend to be.** No witness exists; with one active
+  workstream the invariant "every active task is tagged" is vacuously true.
+- **Do not build:** a parallel registry file beside the board, a labels subsystem, or an
+  auto-promotion script. Grouping is boards; the codename is a title prefix.
+- **Mechanics live in the `kanban-notion-workflow` skill** — dispatcher and board semantics, and
+  why `hermes project` is the wrong key (per-profile `projects.db`).
