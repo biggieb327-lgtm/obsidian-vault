@@ -67,7 +67,9 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
   in `plugins.enabled`; registry now 28 mechs / 0 failures); F7 — sovereign-guard docstring
   corrected (systemctl/ufw/iptables are NOT matched → hostops allowlist); F2 — AGENTS.md
   §2/§12 wording aligned. F6 accepted as documented (detection ≠ gate). Backup
-  `pre-change-20260917-075213`. **IG pass pending.**
+  `pre-change-20260917-075213`. **IG:** round 1 `deleg_ca8d10d2` FAIL (LOW: plugin.yaml:3
+  manifest still claimed systemd interception — fixed) → round 2 `deleg_722b07b8` PASS.
+  **Sprint 1 CLOSED.**
 
 ## Sprint 2 — Cabinet Profiles
 - **Scope:** `profiles/{default,orchestrator,implementer,researcher,writer,treasury,reviewer}/`
@@ -184,7 +186,7 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 ## Sprint Status Board
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
 |---|---|---|---|---|
-| 1 Governance & Config | **GAPS (verified)** | Tier 1 guard not loaded; backup/confirm disabled; registry plugin blind spot | ✅ Remediated (F1,F3,F4,F5,F7); IG pending |
+| 1 Governance & Config | **GAPS (verified)** | Tier 1 guard not loaded; backup/confirm disabled; registry plugin blind spot | ✅ Remediated (F1,F3,F4,F5,F7); IG PASS (`deleg_722b07b8`) |
 | 2 Cabinet Profiles | | | | |
 | 3 Cron & Delivery | **GAPS (verified)** | Staleness=whole-file mtime; digest masks failures as "silent"; disabled landmine; origin-null job | ✅ Remediated (F1+F2+F3); IG PASS (`deleg_7bf66103`) |
 | 4 Mechanisms & Witnesses | | | | |
