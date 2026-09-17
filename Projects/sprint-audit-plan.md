@@ -34,6 +34,32 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
   documented rule dead/contradictory? Secrets safe? Guard coverage complete?
 - **Acceptance (PASS):** every declared guard has a real enforcement path; no secret leaks
   in scope; no doc-vs-config contradiction.
+- **Result (2026-09-17): GAPS (CC-audited from a neutral dir + verified against ground truth).**
+  - **F1 [CRITICAL] — `sovereign-guard` (declared Tier 1 veto) is NOT loaded.** AGENTS.md §2
+    names it as the `pre_tool_call` interceptor; `plugins.enabled` lists only
+    `control-file-sentinel`; `hermes plugins list` → "not enabled"; `plugins_discovery.py:213-217`
+    `gate_manifest` skips any user plugin absent from `plugins.enabled`, so `register()` never
+    runs. **Zero Tier 1 enforcement** (rm -rf /, force-push main, DROP, mkfs/dd). The guard's own
+    docstring (`guard_control_files.py:98-101`) names this plugin as the honest out-of-process
+    boundary. Secondary: the plugin's docstring claims `systemctl/ufw/iptables` coverage but
+    `_BLOCKED_PATTERNS` has no such rule.
+  - **F2 [HIGH] — Tier 2 "mandatory" judicial review has no mechanical gate.** §2 says completion
+    "CANNOT" be declared without an IG PASS, but §12 admits review is optional ("Every
+    completed-but-unreviewed task is normal by default"). Prose convention, not enforced.
+  - **F3 [HIGH] — pre-change backup: no enforcement + built-in affordance off.** No
+    `.py/.yaml/.sh` invokes `pre_change_backup.sh`; `updates.pre_update_backup: false`
+    (config.yaml:196) and `approvals.destructive_slash_confirm: false` (:137) are both disabled.
+    Only manual agent discipline remains.
+  - **F4 [MED] — `command_allowlist` auto-approves dangerous patterns** (:139-142:
+    overwrite-via-redirection, `-e/-c` exec, heredoc exec, `execute_code`) — none covered by
+    sovereign-guard's regexes, so with F1 these are open paths.
+  - **F5 [MED] — Mechanism Registry blind spot: plugin enablement is unwitnessed.** The registry
+    catches dead scripts but not a disabled plugin — exactly why F1 went undetected.
+  - **F6 [INFO] — `control-file-sentinel` is detection/evidence, not an approval gate**
+    (self-documented); the "guard/approval" framing oversells it.
+  - **Verified SAFE:** `.env` mode 600 + untracked (CC's uncertainty was a bundle-scope artifact);
+    redacted bundle leak-scan clean.
+- **Status:** Pending remediation decision (F1/F4 are posture changes → Sovereign sign-off).
 
 ## Sprint 2 — Cabinet Profiles
 - **Scope:** `profiles/{default,orchestrator,implementer,researcher,writer,treasury,reviewer}/`
@@ -150,7 +176,7 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 ## Sprint Status Board
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
 |---|---|---|---|---|
-| 1 Governance & Config | | | | |
+| 1 Governance & Config | **GAPS (verified)** | Tier 1 guard not loaded; backup/confirm disabled; registry plugin blind spot | Pending remediation decision |
 | 2 Cabinet Profiles | | | | |
 | 3 Cron & Delivery | **GAPS (verified)** | Staleness=whole-file mtime; digest masks failures as "silent"; disabled landmine; origin-null job | ✅ Remediated (F1+F2+F3); IG PASS (`deleg_7bf66103`) |
 | 4 Mechanisms & Witnesses | | | | |
