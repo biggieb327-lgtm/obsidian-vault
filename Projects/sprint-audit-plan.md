@@ -283,5 +283,5 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 | 4 Mechanisms & Witnesses | **GAPS (verified)** | check_script_drift dead-coded; security-reaudit on-change+ban-drill unwitnessed | ✅ Remediated (F1,F2); IG PASS (`deleg_e46e9acf`) |
 | 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
 | 6 Memory & Knowledge | **GAPS (verified)** | Curator silent no-op; MEMORY.md over cap; no Hindsight witness | ✅ Remediated; IG PASS (`deleg_60b7807e`) |
-| 7 Kanban & Dispatch | **GAPS (verified)** | Audit scripts can't fail; `reviewer=` route unexercised; `sprint-audit` codename unregistered | ✅ Remediated (F2,F3); IG pending |
-| 8 Token Economy | **GAPS (verified)** | `--check` ignores baseline; background_review unpinned; aux/legacy spend invisible | ✅ Remediated (F1-F4,F7); IG pending |
+| 7 Kanban & Dispatch | **GAPS (verified)** | Audit scripts can't fail; `reviewer=` route unexercised; `sprint-audit` codename unregistered | ✅ Remediated (F2,F3); IG PASS (`deleg_87d8d085`) |
+| 8 Token Economy | **GAPS (verified)** | `--check` ignores baseline; background_review unpinned; aux/legacy spend invisible | ✅ Remediated (F1-F4,F7); IG PASS (`deleg_b65765ca`) |
