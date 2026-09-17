@@ -127,12 +127,32 @@ cat /home/hermes/.hermes/<sprint-scope-files> | \
 - **Lesson (recorded in `regression-witnesses`):** a fallback default equal to the live value masks a broken config read — prove a config read by injecting a *distinct* value, never by asserting the current one.
 - Tier-2 IG round 2 (`deleg_60b7807e`): **PASS** — all 7 criteria verified by execution (nested-cap inject, negative mutation, dedup archive, 3-copy hash, audit+health), no remaining defects. **Sprint 6 closed.**
 
+## Sprint 3 — Cron & Delivery (CC verdict: **GAPS**; verified)
+
+**Scope:** 48 jobs / 4 stores (default, orchestrator, implementer, writer), 38 enabled; the delivery-resolution code (`scheduler_delivery.py`, `scheduler_preflight.py`) + the digest/witness scripts.
+
+**Ground truth (established independently):**
+- Delivery: 36 `local`, 10 `origin` (all in the **default** profile → resolves to the Matrix home), 1 `matrix`, 1 `matrix:<room>`. **No `all` in use** → the zero-target trap is latent, not firing.
+- Aggregate witness `cron-output` (mechanism, `invariant: check_cron_output.py`, 360m) → **48 jobs scanned, 0 failures, 0 unwitnessed**; executed by the 6-hourly health check (`mechanism_audit.py:382-394` runs invariant commands).
+- Scripts: 0 active broken. **1 disabled landmine** — orchestrator `7fd64b8a6209`, `scripts/self_improvement_loop.py` → resolves to `.../scripts/scripts/…` (not found); inert, duplicate of working `e56b431cf11e`.
+
+**CC findings — VERIFIED:**
+- **F1 real:** staleness rule compares the run against the whole `jobs.json` mtime (`check_cron_output.py:88`), so editing ANY job can mask ANOTHER job's still-broken failure as "stale". Moot today (all 36 recorded `last_status` = ok).
+- **F2 real:** `daily_digest.py:100` maps an unparseable/crashed artifact to the same gray "silent" badge as genuine silence — a failed agent run can render as "nothing to report".
+- **F3 real (housekeeping):** 5 jobs bulk-paused 2026-09-08T01:48:49–54; `d77a845c7e13` superseded digest; `c08ce685de9a`; `c8a2af9a96b6` (disabled) duplicates the active `ba6623dfa30c` (same `0 8 * * *`).
+- **F4 latent:** `41e27f5fc53d` has `origin: null` + `deliver: origin` — relies on the home-channel fallback; if the home channel is ever removed it logs `ok` and delivers nowhere.
+- **F5 latent:** `5222499063c3` / `b1af5452cf5b` (monthly) never ran; first fire 2026-10-01 — script/delivery path unvalidated.
+
+**CC false alarm — DISMISSED:**
+- Q3 “`check_cron_output` is not wired into any schedule → not an active witness”: **FALSE**. It is mechanism `cron-output` (`config/mechanisms.yaml`), and its `invariant` command is executed by `mechanism_audit.py:382-394` inside the 6-hourly health check. The derived “8 local jobs have no witness” is overstated — the aggregate covers all 48.
+- CC’s bundle covered only the **default** profile, so it could not see the orchestrator landmine.
+
 ## Sprint Status Board
 | Sprint | Scope | CC Verdict | Top Findings | Actions |
 |---|---|---|---|---|
 | 1 Governance & Config | | | | |
 | 2 Cabinet Profiles | | | | |
-| 3 Cron & Delivery | | | | |
+| 3 Cron & Delivery | **GAPS (verified)** | Staleness=whole-file mtime; digest masks failures as "silent"; disabled landmine; origin-null job | ✅ Remediated (F1+F2+F3); IG `deleg_8f3f1b2e` |
 | 4 Mechanisms & Witnesses | | | | |
 | 5 Security Posture | **GAPS (verified)** | Drill `before=1` degenerate-pass; uid:0 manual runs | Drill fix staged pending; audit flags root runs (opt.) |
 | 6 Memory & Knowledge | **GAPS (verified)** | Curator silent no-op; MEMORY.md over cap; no Hindsight witness | ✅ Remediated; IG PASS (`deleg_60b7807e`) |
