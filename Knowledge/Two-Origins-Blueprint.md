@@ -68,3 +68,21 @@ preserved at `Knowledge/attachments/two-origins/` (`glm-5.3-flash.md`,
 ## Next Actions
 - Kanban cards drafted under codename `dual-origin` (see board).
 - Constraint logged: reasoning-replay durability risk (seen 1x, t3 hidden-word class).
+
+## Implementation (2026-09-19)
+- Lineage-locked dispatch delivered in the hermes-agent fork as `agent/lineage.py` +
+  wiring in `tools.delegate_tool._build_children` (kanban card t_a55d4319).
+  - Delegated child payloads now carry `{originating_profile, criteria_id}`
+    (`HERMES_PROFILE`/`HERMES_PROFILE_NAME` + `HERMES_KANBAN_TASK`), folded into
+    the child's context via `append_lineage_stamp`.
+  - Routing is profile-declared in `PROFILE_DECLARED_ROUTING`; each profile
+    advertises the artifact types it accepts. A task naming an `artifact_type`
+    the originating profile does not declare is rejected up front
+    (`validate_task_artifact_type` / `route_error`).
+  - Non-swap invariants documented in `NON_SWAP_INVARIANTS` and mirrored as
+    declared-routing exclusions (Judicial never fixes what it audits; Implementer
+    never authors its own acceptance criteria; the daemon dispatches, profiles
+    never self-assign).
+  - Proof: `tests/tools/test_lineage.py` + `tests/tools/test_lineage_integration.py`
+    (26 tests) — malformed routing is rejected both at the pure `route_error` gate
+    and through the live `_build_children` path.
