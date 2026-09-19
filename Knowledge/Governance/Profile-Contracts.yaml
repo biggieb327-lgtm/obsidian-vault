@@ -1,0 +1,190 @@
+# Profile Boundary Contract (dual-origin / t_84bc89dc)
+#
+# Machine-readable per-profile I/O contract + tool/path allowlists that make
+# profile identity MECHANICAL rather than conventional (SOUL.md politeness).
+#
+# Derived from the "two brain origins" blueprint (Knowledge/Two-Origins-Blueprint.md):
+#   - Otx2 (fore/midbrain)  -> Telic/Cognitive profiles: Executive, Legislative,
+#                              Intelligence, State
+#   - Gbx2 (hindbrain)       -> Somatic/Invariant profiles: Defense, Treasury,
+#                              Judicial
+# Telic line carries intent/synthesis; Somatic line carries exit codes, ledgers,
+# filesystem state, and test assertions. Both must interoperate without merging.
+#
+# Enforcement is STRUCTURAL: plugins/profile-boundary-guard sits on
+# pre_tool_call and blocks any tool call that violates this contract for the
+# ACTIVE profile (resolved from $HERMES_HOME). It is not a prompt; a future
+# profile cannot "forget" to comply. correlates test: scripts/tests/test_profile_contracts.py
+#
+# The kanban board is the SOLE shared substrate between profiles. No profile
+# may silently write another profile's state (skills, cron, memory, config,
+# SOUL.md, evidence) or the install-root governance files.
+
+version: 1
+
+# Install root (single host). contract lives at <root>/profiles/contracts.yaml
+root: "/home/hermes/.hermes"
+
+# The one file/socket every profile legitimately both reads AND writes as a
+# shared substrate. Everything else a profile writes must be inside (a) its own
+# profile home, (b) an explicitly shared read-only-for-others domain, or
+# (c) the scratch workspace of the task it holds.
+shared_substrate:
+  kanban: "/home/hermes/.hermes/kanban.db"     # reads+writes for every profile
+  evidence: "/home/hermes/.hermes/evidence"     # writes allowed; append-only for others' task dirs
+  reports: "/home/hermes/.hermes/reports"       # write allowed (shared, not another profile's state)
+
+# Every profile home. Used to build the automatic cross-profile deny rule.
+profile_homes:
+  default:      "/home/hermes/.hermes"
+  implementer:  "/home/hermes/.hermes/profiles/implementer"
+  orchestrator: "/home/hermes/.hermes/profiles/orchestrator"
+  researcher:   "/home/hermes/.hermes/profiles/researcher"
+  reviewer:     "/home/hermes/.hermes/profiles/reviewer"
+  treasury:     "/home/hermes/.hermes/profiles/treasury"
+  writer:       "/home/hermes/.hermes/profiles/writer"
+
+# Obsidian vault is owned by State (writer). Defense (implementer) must not
+# write it. Shared knowledge roots.
+obsidian_vault: "/home/hermes/.hermes/workspace/obsidian-vault"
+
+# Hermes install-root governance files: no profile may edit these (they change
+# the constitution / memory / config / mechanism registry). Guarded by
+# guard_control_files.py; this contract names them for the boundary plugin too.
+control_files:
+  - "/home/hermes/.hermes/AGENTS.md"
+  - "/home/hermes/.hermes/SOUL.md"
+  - "/home/hermes/.hermes/config.yaml"
+  - "/home/hermes/.hermes/config/mechanisms.yaml"
+  - "/home/hermes/.hermes/.env"
+
+# ---------------------------------------------------------------------------
+# Per-profile contract
+# ---------------------------------------------------------------------------
+# Each entry:
+#   accepts:   input artifacts this profile is ENTITLED to consume
+#   returns:   output artifacts this profile MUST return (schema-carrying)
+#   deny_paths: path prefixes this profile may NOT write (auto-extended with
+#               every OTHER profile home + the control files)
+#   deny_tools: tool names the profile may never call (canonical names)
+#   deny_commands: shell-substring patterns the profile may never run via terminal
+#   witness:    the external non-self-report evidence a PASS verdict must carry
+#               (Judicial rule: CI green is NOT a witness -- criterion 5)
+# ---------------------------------------------------------------------------
+
+profiles:
+  # ---- Telic (Otx2) line ----
+  default:
+    lineage: telic
+    role: executive
+    accepts:
+      - { artifact: directive, fields: [intent] }
+    returns:
+      - { artifact: brief, fields: [decision, rationale] }
+    deny_paths: []
+    deny_tools: []
+    deny_commands: []
+    witness: null
+
+  orchestrator:
+    lineage: telic
+    role: legislative
+    accepts:
+      - { artifact: user_initiative, fields: [goal] }
+    returns:
+      - { artifact: kanban_task, fields: [title, acceptance_criteria], must_be_well_formed: true }
+    deny_paths: []
+    deny_tools: []
+    deny_commands: []
+    witness: null
+
+  researcher:
+    lineage: telic
+    role: intelligence
+    accepts:
+      - { artifact: research_brief, fields: [question] }
+    returns:
+      - { artifact: intelligence_brief, fields: [findings, citations], citations_resolvable: true }
+    deny_paths: []
+    deny_tools: []
+    deny_commands: []
+    witness: null
+
+  writer:
+    lineage: telic
+    role: state
+    accepts:
+      - { artifact: draft_assignment, fields: [source_material] }
+    returns:
+      - { artifact: published_doc, fields: [content, destination] }
+    # State owns Obsidian + Notion publishing but must NOT push git (vault /
+    # repo pushes belong to the default profile).
+    deny_paths: []
+    deny_tools: []
+    deny_commands:
+      - "git push"
+      - "git commit "
+    witness: null
+
+  # ---- Somatic (Gbx2) line ----
+  implementer:
+    lineage: somatic
+    role: defense
+    accepts:
+      - { artifact: task_spec, fields: [task_id, acceptance_criteria] }
+    returns:
+      - { artifact: change_set, fields: [changed_files, witness_handles] }
+    # Defense (implementer) must NOT write the Obsidian vault (State's domain).
+    deny_paths:
+      - "/home/hermes/.hermes/profiles/researcher"   # cannot edit another telic profile's state
+    deny_tools:
+      - "notion"        # publishing is State's domain
+    deny_commands: []
+    witness: null
+
+  treasury:
+    lineage: somatic
+    role: fiscal
+    accepts:
+      - { artifact: transaction_input, fields: [account, amount] }
+    returns:
+      - { artifact: reconciled_ledger, fields: [account, balance, evidence] }
+    deny_paths: []
+    deny_tools:
+      - "notion"
+    deny_commands: []
+    witness: null
+
+  reviewer:
+    lineage: somatic
+    role: judicial
+    accepts:
+      - { artifact: review_request, fields: [task_id, evidence, acceptance_criteria] }
+    returns:
+      - { artifact: review_verdict, fields: [task_id, verdict, findings],
+          verdict_enum: [PASS, FAIL] }
+    deny_paths: []
+    deny_tools: []
+    deny_commands: []
+    # CRITERION 5: a PASS is not a self-report. The verdict must NAME an
+    # external witness handle (a kanban receipt, an evidence-file hash, or a
+    # reviewer-authored evidence artifact path) that a third party can check.
+    # "CI green" / team green self-attestation is NOT sufficient.
+    witness:
+      kind: external_handle
+      allowed_sources: [task_receipt, evidence_file, reviewer_artifact]
+      self_report_forbidden: true
+      self_report_pattern: "(?i)(ci green|tests? (green|pass|passed)|we ran the test|all checks? pass)"
+
+# Cross-profile write rule (criterion 3): any profile's deny_paths is
+# auto-extended with every OTHER profile home + the Obsidian vault (unless the
+# profile explicitly owns it) + the install-root control files. Deny is
+# computed at load time by profile_boundary.py; do not maintain it by hand here.
+auto_deny:
+  other_profile_homes: true
+  control_files: true
+  obsidian_vault_for_roles: [defense, fiscal, legislative, intelligence, executive, judicial]
+
+# The helper that loads + interprets this file and enforces the deny rules.
+enforcer: "scripts/profile_boundary.py"
+plugin: "plugins/profile-boundary-guard"
