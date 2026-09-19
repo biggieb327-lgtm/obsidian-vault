@@ -26,7 +26,8 @@ function, yet are built by different maker lines and are **not interchangeable**
 ## Three Model Takes (2026-09-19)
 Three independent models (GLM-5.3-flash, Qwen-3.8-27B, Gemini-3.8-flash) given an
 identical applied brief against our 7-profile governance architecture. Full text
-preserved at `~/tmp/brain_origins_takes/` and in this archive's daily note.
+preserved at `Knowledge/attachments/two-origins/` (`glm-5.3-flash.md`,
+`qwen-3.8-27b.md`, `gemini-3.8-flash.md`).
 
 ### GLM (z-ai/glm-5.3-flash) — "Current contracts are implicit; make them structural"
 - Over-integration: shared FS, shared memory, one dispatch daemon; boundary enforced by
