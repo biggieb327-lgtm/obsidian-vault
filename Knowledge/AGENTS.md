@@ -309,7 +309,7 @@ responsible for instead:
 | `vault-auto-push` | `check_vault_sync.py` | Vault worktree clean and HEAD not ahead of `origin/main` (30m tolerance for the 10m schedule). |
 | `infrastructure-watchdog` | `watchdog_state.json` fresh | The diff baseline is rewritten every run, proving the pass executed. |
 | `bulletproof-health-check` | `cron/output/e490b859eacc/*` fresh | The per-run output artifact exists (agent job — nothing else on disk to hash). |
-| `kanban-dispatch` | `check_dispatcher_lock.py` | Lock resolved to a **live Hermes PID**, not merely a file that exists. |
+| `kanban-dispatch` | `check_dispatcher_singleton.py` | Exactly **one live** dispatcher (gateway-embedded flock *or* standalone daemon); 0 = stalled, ≥2 = duplicate. Supersedes the retired lock-only `check_dispatcher_lock.py`. |
 
 The dispatch witness matters most: a lock *file* outlives its holder, so the old
 check ("file present") would report healthy while the board was silently stalled.
