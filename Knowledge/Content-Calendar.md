@@ -20,6 +20,7 @@ tags:
 - **2026-09-17** — [Executive Cabinet Briefing — September 17, 2026](https://app.notion.com/p/Executive-Cabinet-Briefing-September-17-2026-3de6feaa0e46817daa8bc29132562744) — **Notion** (Hermes Agent Workspace) — Published — page `3de6feaa-0e46-817d-aa8b-c29132562744` — found on the 30 September ledger pass; vault [[Cabinet-Briefing-2026-09-17]]
 - **2026-09-30** — [Executive Cabinet Briefing — September 30, 2026](https://app.notion.com/p/Executive-Cabinet-Briefing-September-30-2026-3eb6feaa0e4681d3baece9c07c5aeae7) — **Notion** (Hermes Agent Workspace) — Published — page `3eb6feaa-0e46-81d3-baec-e9c07c5aeae7` — vault [[Cabinet-Briefing-2026-09-30]]
 - **2026-10-07** — [Executive Cabinet Briefing — October 7, 2026](https://app.notion.com/p/Executive-Cabinet-Briefing-October-7-2026-3f26feaa0e468197af52fe17d1fea574) — **Notion** (Hermes Agent Workspace) — Published — page `3f26feaa-0e46-8197-af52-fe17d1fea574` — parent confirmed `3d46feaa-0e46-81cc-b949-ca4f839da29d` — vault [[Cabinet-Briefing-2026-10-07]]
+- **2026-10-14** — [Executive Cabinet Briefing — October 14, 2026](https://app.notion.com/p/Executive-Cabinet-Briefing-October-14-2026-3f96feaa0e4681478e0ecb726fdc27f7) — **Notion** (Hermes Agent Workspace) — Published — page `3f96feaa-0e46-8147-8e0e-cb726fdc27f7` — parent confirmed `3d46feaa-0e46-81cc-b949-ca4f839da29d` — vault [[Cabinet-Briefing-2026-10-14]]
 
 ## Scheduled
 
@@ -27,8 +28,8 @@ tags:
 
 ## Drafts / Backlog
 
-- **2026-09-15** — [[Cabinet-Briefing-2026-09-15]] — in the vault, not found in Notion search on 2026-09-30. Deferred again on 2026-10-07 so the current briefing could ship. Next archival backfill. Platform: **Notion** (Hermes Agent Workspace).
-- **2026-09-18 through 2026-09-29, and 2026-10-01 through 2026-10-06** — cabinet cron outputs under `ba6623dfa30c` exist. Not vaulted. Not this week's piece.
+- **2026-09-15** — [[Cabinet-Briefing-2026-09-15]] — in the vault, not among the six briefing pages returned by Notion search on 2026-10-14. Deferred a third time so the current cash note could ship. Next archival backfill. Platform: **Notion** (Hermes Agent Workspace).
+- **2026-09-18 through 2026-09-29, 2026-10-01 through 2026-10-06, and 2026-10-08 through 2026-10-13** — cabinet cron outputs under `ba6623dfa30c` exist. Not vaulted. Not this week's piece.
 - **2026-09-11** — `workspace/dod_brief.md` — superseded. Not a State publishable. Leave it.
 
 ## Publishing Pipeline
@@ -45,4 +46,4 @@ tags:
 > Note: This calendar lives in Obsidian because the Notion database API (v2025-09-03) could not apply schema properties at create time, leaving a schema-less DB that cannot hold structured rows.
 
 ---
-[[WORKSPACE_MAP]] | [[Projects-Hub]] | [[Cabinet-Briefing-2026-10-07]] | [[Daily/2026-10-07]]
+[[WORKSPACE_MAP]] | [[Projects-Hub]] | [[Cabinet-Briefing-2026-10-14]] | [[Daily/2026-10-14]]
