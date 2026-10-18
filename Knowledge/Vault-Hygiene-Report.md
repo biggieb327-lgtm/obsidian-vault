@@ -1,9 +1,9 @@
 # Obsidian Vault Hygiene Report
-> Generated deterministically: 2026-10-11T02:01:02 UTC
+> Generated deterministically: 2026-10-18T02:00:26 UTC
 
-- **Total Notes:** 37
+- **Total Notes:** 39
 - **Unfiled Root Notes:** 0
-- **Orphan Notes (0 Inbound Links):** 13
+- **Orphan Notes (0 Inbound Links):** 14
 - **Files with Broken Links:** 4
 
 ## Unfiled Root Notes
@@ -22,6 +22,7 @@
 - [[2026-09-18]]
 - [[2026-09-19]]
 - [[2026-09-30]]
+- [[2026-10-07]]
 - [[Research-Optimal-Hermes-Setup-AI-Leverage]]
 - [[SSH-Hardening-Runbook]]
 - [[Two-Origins-Blueprint]]
