@@ -1,11 +1,11 @@
 # Knowledge Graph & Concept Cluster Index
-> Automated topological graph generated: 2026-10-18T02:00:26 UTC
+> Automated topological graph generated: 2026-10-25T03:00:14 UTC
 
 A synthesized overview of topics, conceptual clusters, and cross-document links in this vault.
 
 ## Conceptual Clusters
 
-### 🏷️ `Automation` (27 notes)
+### 🏷️ `Automation` (29 notes)
 *Quartermaster friction mining, task evidence isolation, decision ledgers, and subagent QA passes.*
 
 - [[2026-09-13]]
@@ -17,6 +17,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[2026-09-30]]
 - [[2026-10-07]]
 - [[2026-10-14]]
+- [[2026-10-21]]
 - [[AGENTS]]
 - [[Cabinet-Briefing-2026-09-13]]
 - [[Cabinet-Briefing-2026-09-15]]
@@ -25,6 +26,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[Cabinet-Briefing-2026-09-30]]
 - [[Cabinet-Briefing-2026-10-07]]
 - [[Cabinet-Briefing-2026-10-14]]
+- [[Cabinet-Briefing-2026-10-21]]
 - [[Content-Calendar]]
 - [[Decisions-Log]]
 - [[Research-Optimal-Hermes-Setup-AI-Leverage]]
@@ -36,7 +38,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[qwen-3.8-27b]]
 - [[sprint-audit-plan]]
 
-### 🏷️ `Finance` (24 notes)
+### 🏷️ `Finance` (25 notes)
 *YNAB budgeting, account balances, debt tracking, and transaction reconciliation.*
 
 - [[2026-09-13]]
@@ -51,6 +53,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[Cabinet-Briefing-2026-09-30]]
 - [[Cabinet-Briefing-2026-10-07]]
 - [[Cabinet-Briefing-2026-10-14]]
+- [[Cabinet-Briefing-2026-10-21]]
 - [[Decisions-Log]]
 - [[Hermes-Operational-Architecture-Matrix]]
 - [[Hermes-Resilience-Playbook]]
@@ -64,7 +67,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[qwen-3.8-27b]]
 - [[sprint-audit-plan]]
 
-### 🏷️ `Governance` (34 notes)
+### 🏷️ `Governance` (36 notes)
 *Constitutional roles, separation of powers, executive SOUL charters, and checks & balances.*
 
 - [[2026-09-13]]
@@ -77,6 +80,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[2026-09-30]]
 - [[2026-10-07]]
 - [[2026-10-14]]
+- [[2026-10-21]]
 - [[AGENTS]]
 - [[AI-Agent-Hub]]
 - [[Cabinet-Briefing-2026-09-13]]
@@ -86,6 +90,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[Cabinet-Briefing-2026-09-30]]
 - [[Cabinet-Briefing-2026-10-07]]
 - [[Cabinet-Briefing-2026-10-14]]
+- [[Cabinet-Briefing-2026-10-21]]
 - [[Content-Calendar]]
 - [[Decisions-Log]]
 - [[Hermes-Operational-Architecture-Matrix]]
@@ -102,7 +107,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[qwen-3.8-27b]]
 - [[sprint-audit-plan]]
 
-### 🏷️ `Infrastructure` (34 notes)
+### 🏷️ `Infrastructure` (36 notes)
 *VPS hosting, systemd processes, Tailscale mesh, network ports, and cron jobs.*
 
 - [[2026-09-13]]
@@ -115,6 +120,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[2026-09-30]]
 - [[2026-10-07]]
 - [[2026-10-14]]
+- [[2026-10-21]]
 - [[AGENTS]]
 - [[Cabinet-Briefing-2026-09-13]]
 - [[Cabinet-Briefing-2026-09-15]]
@@ -123,6 +129,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[Cabinet-Briefing-2026-09-30]]
 - [[Cabinet-Briefing-2026-10-07]]
 - [[Cabinet-Briefing-2026-10-14]]
+- [[Cabinet-Briefing-2026-10-21]]
 - [[Content-Calendar]]
 - [[Decisions-Log]]
 - [[Hermes-Operational-Architecture-Matrix]]
@@ -140,7 +147,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[qwen-3.8-27b]]
 - [[sprint-audit-plan]]
 
-### 🏷️ `Memory` (28 notes)
+### 🏷️ `Memory` (29 notes)
 *Hindsight memory engine, retain/reflect/recall pipelines, and compact local profiles.*
 
 - [[2026-09-13]]
@@ -159,6 +166,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[Cabinet-Briefing-2026-09-30]]
 - [[Cabinet-Briefing-2026-10-07]]
 - [[Cabinet-Briefing-2026-10-14]]
+- [[Cabinet-Briefing-2026-10-21]]
 - [[Decisions-Log]]
 - [[Hermes-Operational-Architecture-Matrix]]
 - [[Hermes-Resilience-Playbook]]
@@ -172,7 +180,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[qwen-3.8-27b]]
 - [[sprint-audit-plan]]
 
-### 🏷️ `Research` (17 notes)
+### 🏷️ `Research` (18 notes)
 *Multi-agent research, arXiv benchmarks, community showcases, and Reddit monitoring.*
 
 - [[2026-09-14]]
@@ -184,6 +192,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[Cabinet-Briefing-2026-09-30]]
 - [[Cabinet-Briefing-2026-10-07]]
 - [[Cabinet-Briefing-2026-10-14]]
+- [[Cabinet-Briefing-2026-10-21]]
 - [[Hermes-Resilience-Playbook]]
 - [[Research-Optimal-Hermes-Setup-AI-Leverage]]
 - [[SOUL]]
@@ -193,7 +202,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[qwen-3.8-27b]]
 - [[sprint-audit-plan]]
 
-### 🏷️ `Resilience` (27 notes)
+### 🏷️ `Resilience` (28 notes)
 *Pre-change backup, rollback protocols, health checks, watchdog monitoring, and RCA.*
 
 - [[2026-09-13]]
@@ -211,6 +220,7 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 - [[Cabinet-Briefing-2026-09-30]]
 - [[Cabinet-Briefing-2026-10-07]]
 - [[Cabinet-Briefing-2026-10-14]]
+- [[Cabinet-Briefing-2026-10-21]]
 - [[Hermes-Operational-Architecture-Matrix]]
 - [[Hermes-Resilience-Playbook]]
 - [[Memory-Wiki]]
@@ -228,23 +238,25 @@ A synthesized overview of topics, conceptual clusters, and cross-document links 
 
 | Note | Inbound Links | Outbound Links | Auto-Assigned Clusters |
 |---|---|---|---|
-| [[Content-Calendar]] | 11 | 10 | `governance`, `infrastructure`, `automation` |
-| [[Projects-Hub]] | 9 | 9 | `memory`, `finance` |
+| [[Content-Calendar]] | 13 | 11 | `governance`, `infrastructure`, `automation` |
+| [[Projects-Hub]] | 10 | 9 | `memory`, `finance` |
 | [[Decisions-Log]] | 8 | 4 | `governance`, `infrastructure`, `memory`, `finance`, `automation` |
 | [[Memory-Wiki]] | 7 | 14 | `governance`, `resilience`, `infrastructure` |
 | [[WORKSPACE_MAP]] | 7 | 0 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation`, `research` |
+| [[Cabinet-Briefing-2026-09-15]] | 5 | 0 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation` |
 | [[People-Hub]] | 4 | 7 | _none_ |
 | [[AI-Agent-Hub]] | 4 | 17 | `governance`, `memory` |
-| [[Cabinet-Briefing-2026-09-15]] | 4 | 0 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation` |
 | [[Cabinet-Briefing-2026-09-30]] | 3 | 3 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation`, `research` |
+| [[Cabinet-Briefing-2026-10-14]] | 3 | 4 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation`, `research` |
 | [[Cabinet-Briefing-2026-10-07]] | 3 | 3 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation`, `research` |
-| [[2026-10-14]] | 2 | 3 | `governance`, `infrastructure`, `automation` |
+| [[2026-10-21]] | 2 | 3 | `governance`, `infrastructure`, `automation` |
 | [[2026-09-13]] | 2 | 6 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation` |
+| [[Cabinet-Briefing-2026-10-21]] | 2 | 4 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation`, `research` |
 | [[Hermes-Resilience-Playbook]] | 2 | 0 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `research` |
-| [[Cabinet-Briefing-2026-10-14]] | 2 | 4 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation`, `research` |
 | [[Cabinet-Briefing-2026-09-13]] | 2 | 3 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation`, `research` |
 | [[constraints]] | 2 | 0 | `governance`, `infrastructure`, `memory`, `finance` |
 | [[Cabinet-Briefing-2026-09-17]] | 2 | 0 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation` |
+| [[2026-10-14]] | 1 | 3 | `governance`, `infrastructure`, `automation` |
 | [[2026-09-16]] | 1 | 0 | `governance`, `resilience`, `infrastructure`, `memory`, `automation`, `research` |
 | [[Cabinet-Briefing-2026-09-16]] | 1 | 0 | `governance`, `resilience`, `infrastructure`, `memory`, `finance`, `automation` |
 | [[Hermes-Operational-Architecture-Matrix]] | 1 | 0 | `governance`, `resilience`, `infrastructure`, `memory`, `finance` |

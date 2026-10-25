@@ -1,7 +1,7 @@
 # Obsidian Vault Hygiene Report
-> Generated deterministically: 2026-10-18T02:00:26 UTC
+> Generated deterministically: 2026-10-25T03:00:14 UTC
 
-- **Total Notes:** 39
+- **Total Notes:** 41
 - **Unfiled Root Notes:** 0
 - **Orphan Notes (0 Inbound Links):** 14
 - **Files with Broken Links:** 4
